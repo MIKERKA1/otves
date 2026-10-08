@@ -1,0 +1,13 @@
+---
+import { iconBody, icons, type IconName } from '../lib/icons';
+
+const symbols = (Object.keys(icons) as IconName[])
+  .map((name) => `<symbol id="i-${name}" viewBox="0 0 256 256">${iconBody(name)}</symbol>`)
+  .join('');
+---
+
+<svg class="icon-sprite" aria-hidden="true" focusable="false" set:html={symbols} />
+
+<style>
+  .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+</style>

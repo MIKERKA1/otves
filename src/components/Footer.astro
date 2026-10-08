@@ -1,0 +1,107 @@
+---
+import { withBase } from '../lib/url';
+import Logo from './Logo.astro';
+import { legalLinks, site } from '../data/site';
+import { services } from '../data/services';
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <Logo inverse />
+        <p class="footer__slogan">{site.slogan}.</p>
+        <p class="footer__about">Ремонт квартир, натяжные потолки, окна, сантехника и электрика. Одна смета, один договор, один прораб на связи.</p>
+      </div>
+
+      <nav class="footer__col" aria-labelledby="footer-services">
+        <h2 id="footer-services" class="footer__title">Услуги</h2>
+        <ul class="footer__list">
+          {services.map((s) => <li><a href={withBase(`/uslugi/${s.id}/`)}>{s.title}</a></li>)}
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-labelledby="footer-site">
+        <h2 id="footer-site" class="footer__title">Сайт</h2>
+        <ul class="footer__list">
+          <li><a href={withBase('/#pomoshnik')}>Не знаю, что нужно</a></li>
+          <li><a href={withBase('/#raschet')}>Калькулятор</a></li>
+          <li><a href={withBase('/#raboty')}>Работы</a></li>
+          <li><a href={withBase('/#etapy')}>Как работаем</a></li>
+          <li><a href={withBase('/#voprosy')}>Вопросы</a></li>
+          <li><a href={withBase('/o-proekte/')}>О демо-проекте</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-labelledby="footer-docs">
+        <h2 id="footer-docs" class="footer__title">Документы</h2>
+        <ul class="footer__list">
+          {legalLinks.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+          <li><button type="button" class="link-btn" data-consent-open>Настройки cookie</button></li>
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h2 class="footer__title">Контакты</h2>
+        <ul class="footer__list">
+          <li><a href={site.phone.href} class="num">{site.phone.display}</a></li>
+          <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+          <li>{site.hours}</li>
+          <li>{site.area}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>
+        «Отвес» придуман для портфолио. Юрлица и реквизитов нет, телефон и почта ненастоящие: звонок не пройдёт, письмо не дойдёт.
+        Фотографии ремонта: <a href="https://unsplash.com/@immorenovation" rel="noopener noreferrer">immo RENOVATION</a> на Unsplash.
+      </p>
+      <p>© 2026</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--inverse);
+    color: var(--on-inverse);
+    padding-block: clamp(3rem, 2rem + 4vw, 5rem) 2rem;
+    font-size: 0.9375rem;
+  }
+  .footer a, .footer :global(.link-btn) { color: var(--on-inverse); text-decoration-color: color-mix(in oklab, currentColor 45%, transparent); }
+  .footer__list a, .footer__list :global(.link-btn) { text-decoration: none; }
+  .footer a:hover, .footer a:focus-visible, .footer :global(.link-btn):hover { text-decoration: underline; text-decoration-color: currentColor; }
+  .footer :global(:focus-visible) { outline-color: var(--signal); }
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(4, 1fr);
+    gap: 2.5rem 2rem;
+  }
+  .footer__slogan { margin-top: 1rem; font-size: var(--step-2); font-weight: 650; font-variation-settings: 'SHRP' 100; letter-spacing: -0.02em; }
+  .footer__about { margin-top: 0.75rem; color: var(--on-inverse-2); max-width: 32ch; }
+  .footer__title { font-size: 0.9375rem; font-weight: 600; color: var(--on-inverse-2); margin-bottom: 0.9rem; font-variation-settings: normal; letter-spacing: 0; }
+  .footer__list { display: grid; gap: 0.55rem; }
+  .footer__list :global(.link-btn) { text-align: left; }
+  .footer__bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in oklab, var(--on-inverse) 18%, transparent);
+    color: var(--on-inverse-2);
+    font-size: var(--step--1);
+  }
+  .footer__bottom p:first-child { max-width: 75ch; }
+
+  @media (max-width: 1000px) {
+    .footer__grid { grid-template-columns: repeat(2, 1fr); }
+    .footer__brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 520px) {
+    .footer__grid { grid-template-columns: 1fr; }
+    .footer__bottom { flex-direction: column; }
+    .footer__list a, .footer__list :global(.link-btn) { display: inline-block; padding-block: 0.3rem; }
+  }
+</style>

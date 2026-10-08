@@ -1,0 +1,50 @@
+---
+import type { PriceItem } from '../../data/services';
+import { rubFrom } from '../../lib/format';
+
+interface Props {
+  items: PriceItem[];
+  caption?: string;
+}
+const { items, caption } = Astro.props;
+---
+
+<div class="prices">
+  {caption && <p class="prices__caption">{caption}</p>}
+  <dl class="prices__list">
+    {items.map((p) => (
+      <div class="prices__row">
+        <dt>{p.name}</dt>
+        <dd class="num">{rubFrom(p.from, p.unit)}</dd>
+      </div>
+    ))}
+  </dl>
+</div>
+
+<style>
+  .prices__caption { font-weight: 600; margin-bottom: 0.6rem; }
+  .prices__list { display: grid; gap: 0.15rem; }
+  /* Menu-style leaders: the dots connect a job to its price. */
+  .prices__row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding-block: 0.4rem;
+  }
+  .prices__row dt { flex: 0 1 auto; }
+  .prices__row::after {
+    content: '';
+    order: 1;
+    flex: 1 1 2rem;
+    min-width: 1.5rem;
+    border-bottom: 2px dotted var(--line-strong);
+    transform: translateY(-0.3em);
+  }
+  .prices__row dd { order: 2; flex: none; font-weight: 600; white-space: nowrap; }
+  @media (max-width: 480px) {
+    .prices__row { flex-wrap: wrap; }
+    .prices__row::after { display: none; }
+    .prices__row dt { flex-basis: 100%; }
+    .prices__row dd { color: var(--ink-2); }
+  }
+</style>

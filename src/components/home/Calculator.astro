@@ -1,0 +1,523 @@
+---
+import Icon, { type IconName } from '../Icon.astro';
+import { services, ceilingFinishes, remontLevels } from '../../data/services';
+import type { ServiceId } from '../../data/pricing';
+
+const svcIcon: Record<ServiceId, IconName> = {
+  remont: 'wall',
+  potolki: 'lamp-pendant',
+  okna: 'app-window',
+  santehnika: 'drop',
+  elektrika: 'lightning',
+};
+
+type Step = { name: string; label: string; min: number; max: number; value: number };
+const stepper = (name: string, label: string, value: number, max: number, min = 0): Step => ({ name, label, min, max, value });
+
+const ceilingSteps = [stepper('potolki-rooms', 'Комнат', 1, 8, 1), stepper('potolki-spots', 'Точечных светильников', 6, 40), stepper('potolki-chandeliers', 'Люстр', 1, 8)];
+const windowSteps = [stepper('okna-regular', 'Двустворчатых окон', 2, 20), stepper('okna-triple', 'Трёхстворчатых окон', 0, 20), stepper('okna-balcony', 'Балконных блоков', 0, 5)];
+const plumbingSteps = [
+  stepper('santehnika-mixer', 'Смесители', 1, 10),
+  stepper('santehnika-toilet', 'Унитазы', 0, 10),
+  stepper('santehnika-installation', 'Инсталляции с подвесным унитазом', 0, 10),
+  stepper('santehnika-sink', 'Раковины', 0, 10),
+  stepper('santehnika-bath', 'Ванны', 0, 10),
+  stepper('santehnika-shower', 'Душевые поддоны', 0, 10),
+  stepper('santehnika-appliance', 'Стиральные и посудомоечные машины', 0, 10),
+  stepper('santehnika-towel', 'Полотенцесушители', 0, 10),
+];
+const electricPointSteps = [stepper('elektrika-outlets', 'Заменить розеток и выключателей', 4, 60), stepper('elektrika-newPoints', 'Новых точек со штроблением', 2, 60)];
+const electricLightSteps = [stepper('elektrika-spots', 'Точечных светильников', 0, 80), stepper('elektrika-chandeliers', 'Люстр и бра', 1, 20)];
+---
+
+<section id="raschet" class="section section--surface calc" aria-labelledby="calc-title">
+  <div class="container">
+    <h2 id="calc-title" class="h2" tabindex="-1">Сколько это будет стоить</h2>
+    <p class="lead calc__lead">Примерная цена за минуту. Точную назовём после бесплатного осмотра, и она войдёт в договор.</p>
+
+    <div class="calc__grid">
+      <form class="calc__form" data-calc aria-labelledby="calc-title">
+        <fieldset class="calc__block">
+          <legend class="calc__legend">Что считаем</legend>
+          <div class="calc__chips">
+            {services.map((s, i) => (
+              <label class="chip">
+                <input type="radio" name="service" value={s.id} checked={i === 0} />
+                <span><Icon name={svcIcon[s.id]} />{s.short}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <!-- Ремонт -->
+        <div class="calc__group" data-group="remont">
+          <div class="calc__block">
+            <label class="calc__legend" for="c-remont-area">Площадь квартиры</label>
+            <div class="range">
+              <input type="range" id="c-remont-area" name="remont-area" min="10" max="200" step="1" value="54" />
+              <output for="c-remont-area" class="range__out num" data-unit="м²">54 м²</output>
+            </div>
+          </div>
+          <fieldset class="calc__block">
+            <legend class="calc__legend">Уровень ремонта</legend>
+            <div class="calc__chips">
+              {remontLevels.map((l) => (
+                <label class="chip"><input type="radio" name="remont-level" value={l.id} checked={l.id === 'capital'} /><span>{l.title}</span></label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset class="calc__block">
+            <legend class="calc__legend">Санузел</legend>
+            <div class="calc__chips">
+              <label class="chip"><input type="radio" name="remont-bathroom" value="none" checked /><span>Не трогаем</span></label>
+              <label class="chip"><input type="radio" name="remont-bathroom" value="combined" /><span>Совмещённый</span></label>
+              <label class="chip"><input type="radio" name="remont-bathroom" value="separate" /><span>Раздельный</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="calc__block calc__checks">
+            <legend class="calc__legend">Дополнительно</legend>
+            <label class="check"><input type="checkbox" name="remont-demolition" /><span>Снять старую отделку <span class="calc__inc" data-inc="remont-demolition" hidden>уже входит</span></span></label>
+            <label class="check"><input type="checkbox" name="remont-materials" checked /><span>Черновые материалы закупаем мы <span class="calc__inc" data-inc="remont-materials" hidden>уже входит</span></span></label>
+            <label class="check"><input type="checkbox" name="remont-debris" checked /><span>Вывоз мусора <span class="calc__inc" data-inc="remont-debris" hidden>уже входит</span></span></label>
+          </fieldset>
+        </div>
+
+        <!-- Потолки -->
+        <div class="calc__group" data-group="potolki">
+          <div class="calc__block">
+            <label class="calc__legend" for="c-potolki-area">Площадь потолков</label>
+            <div class="range">
+              <input type="range" id="c-potolki-area" name="potolki-area" min="2" max="120" step="1" value="18" />
+              <output for="c-potolki-area" class="range__out num" data-unit="м²">18 м²</output>
+            </div>
+          </div>
+          <fieldset class="calc__block">
+            <legend class="calc__legend">Фактура полотна</legend>
+            <div class="calc__chips">
+              {ceilingFinishes.map((f) => (
+                <label class="chip"><input type="radio" name="potolki-finish" value={f.id} checked={f.id === 'matte'} /><span>{f.title}</span></label>
+              ))}
+            </div>
+          </fieldset>
+          <div class="calc__block calc__steppers">
+            {ceilingSteps.map((s) => (
+              <div class="calc__step">
+                <span class="calc__step-label" id={`c-${s.name}-l`}>{s.label}</span>
+                <div class="stepper">
+                  <button type="button" data-delta="-1" aria-label={`Меньше: ${s.label.toLowerCase()}`}><Icon name="minus" /></button>
+                  <input type="number" id={`c-${s.name}`} name={s.name} min={s.min} max={s.max} value={s.value} inputmode="numeric" aria-labelledby={`c-${s.name}-l`} />
+                  <button type="button" data-delta="1" aria-label={`Больше: ${s.label.toLowerCase()}`}><Icon name="plus" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="calc__block calc__checks">
+            <label class="check"><input type="checkbox" name="potolki-shadow" /><span>Теневой профиль с зазором у стен</span></label>
+          </div>
+        </div>
+
+        <!-- Окна -->
+        <div class="calc__group" data-group="okna">
+          <div class="calc__block calc__steppers">
+            {windowSteps.map((s) => (
+              <div class="calc__step">
+                <span class="calc__step-label" id={`c-${s.name}-l`}>{s.label}</span>
+                <div class="stepper">
+                  <button type="button" data-delta="-1" aria-label={`Меньше: ${s.label.toLowerCase()}`}><Icon name="minus" /></button>
+                  <input type="number" id={`c-${s.name}`} name={s.name} min={s.min} max={s.max} value={s.value} inputmode="numeric" aria-labelledby={`c-${s.name}-l`} />
+                  <button type="button" data-delta="1" aria-label={`Больше: ${s.label.toLowerCase()}`}><Icon name="plus" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <fieldset class="calc__block calc__checks">
+            <legend class="calc__legend">Профиль и отделка</legend>
+            <label class="check"><input type="checkbox" name="okna-warm" /><span>Тёплый профиль и энергосберегающее стекло <span class="calc__hint">для шумной улицы и северной стороны</span></span></label>
+            <label class="check"><input type="checkbox" name="okna-slopes" checked /><span>Откосы</span></label>
+            <label class="check"><input type="checkbox" name="okna-sills" checked /><span>Подоконники</span></label>
+            <label class="check"><input type="checkbox" name="okna-nets" /><span>Москитные сетки</span></label>
+          </fieldset>
+        </div>
+
+        <!-- Сантехника -->
+        <div class="calc__group" data-group="santehnika">
+          <div class="calc__block calc__steppers">
+            {plumbingSteps.map((s) => (
+              <div class="calc__step">
+                <span class="calc__step-label" id={`c-${s.name}-l`}>{s.label}</span>
+                <div class="stepper">
+                  <button type="button" data-delta="-1" aria-label={`Меньше: ${s.label.toLowerCase()}`}><Icon name="minus" /></button>
+                  <input type="number" id={`c-${s.name}`} name={s.name} min={s.min} max={s.max} value={s.value} inputmode="numeric" aria-labelledby={`c-${s.name}-l`} />
+                  <button type="button" data-delta="1" aria-label={`Больше: ${s.label.toLowerCase()}`}><Icon name="plus" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="calc__block calc__checks">
+            <label class="check"><input type="checkbox" name="santehnika-piping" /><span>Развести трубы в санузле заново</span></label>
+          </div>
+        </div>
+
+        <!-- Электрика -->
+        <div class="calc__group" data-group="elektrika">
+          <fieldset class="calc__block">
+            <legend class="calc__legend">Что нужно</legend>
+            <div class="calc__chips">
+              <label class="chip"><input type="radio" name="elektrika-mode" value="points" checked /><span>Отдельные работы</span></label>
+              <label class="chip"><input type="radio" name="elektrika-mode" value="full" /><span>Замена всей проводки</span></label>
+            </div>
+          </fieldset>
+          <div class="calc__block" data-mode="full">
+            <label class="calc__legend" for="c-elektrika-area">Площадь квартиры</label>
+            <div class="range">
+              <input type="range" id="c-elektrika-area" name="elektrika-area" min="10" max="200" step="1" value="54" />
+              <output for="c-elektrika-area" class="range__out num" data-unit="м²">54 м²</output>
+            </div>
+          </div>
+          <div class="calc__block calc__steppers" data-mode="points">
+            {electricPointSteps.map((s) => (
+              <div class="calc__step">
+                <span class="calc__step-label" id={`c-${s.name}-l`}>{s.label}</span>
+                <div class="stepper">
+                  <button type="button" data-delta="-1" aria-label={`Меньше: ${s.label.toLowerCase()}`}><Icon name="minus" /></button>
+                  <input type="number" id={`c-${s.name}`} name={s.name} min={s.min} max={s.max} value={s.value} inputmode="numeric" aria-labelledby={`c-${s.name}-l`} />
+                  <button type="button" data-delta="1" aria-label={`Больше: ${s.label.toLowerCase()}`}><Icon name="plus" /></button>
+                </div>
+              </div>
+            ))}
+            <label class="check"><input type="checkbox" name="elektrika-panel" /><span>Собрать новый щиток</span></label>
+          </div>
+          <div class="calc__block calc__steppers">
+            {electricLightSteps.map((s) => (
+              <div class="calc__step">
+                <span class="calc__step-label" id={`c-${s.name}-l`}>{s.label}</span>
+                <div class="stepper">
+                  <button type="button" data-delta="-1" aria-label={`Меньше: ${s.label.toLowerCase()}`}><Icon name="minus" /></button>
+                  <input type="number" id={`c-${s.name}`} name={s.name} min={s.min} max={s.max} value={s.value} inputmode="numeric" aria-labelledby={`c-${s.name}-l`} />
+                  <button type="button" data-delta="1" aria-label={`Больше: ${s.label.toLowerCase()}`}><Icon name="plus" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <a class="calc__mobile-total" href="#receipt-title">
+          <span>Примерно</span>
+          <strong class="num" data-total-mini>…</strong>
+        </a>
+      </form>
+
+      <aside class="receipt" aria-labelledby="receipt-title">
+        <h3 id="receipt-title" class="receipt__title" tabindex="-1">Предварительная оценка</h3>
+        <p class="receipt__total num" data-total>…</p>
+        <p class="receipt__sub">стоимость работ</p>
+        <ul class="receipt__lines" data-lines></ul>
+        <p class="receipt__included" data-included hidden></p>
+        <div class="receipt__not">
+          <p class="receipt__not-title">Не входит</p>
+          <ul data-not></ul>
+        </div>
+        <p class="receipt__note">
+          <Icon name="info" />
+          <span>Это ориентир, а не цена договора. Точную смету составим после осмотра: проверим стены, проводку и трубы, которых калькулятор не видит.</span>
+        </p>
+        <button type="button" class="btn btn--primary btn--block" data-calc-send>Отправить расчёт в заявку</button>
+      </aside>
+    </div>
+    <p class="visually-hidden" role="status" data-calc-status></p>
+  </div>
+</section>
+
+<style>
+  .calc__lead { margin-top: 1rem; }
+  .calc__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    align-items: start;
+  }
+  .calc__grid > * { min-width: 0; }
+  .calc__form { display: grid; gap: 1.75rem; }
+  .calc__group { display: none; gap: 1.75rem; }
+  .calc:has([name='service'][value='remont']:checked) [data-group='remont'],
+  .calc:has([name='service'][value='potolki']:checked) [data-group='potolki'],
+  .calc:has([name='service'][value='okna']:checked) [data-group='okna'],
+  .calc:has([name='service'][value='santehnika']:checked) [data-group='santehnika'],
+  .calc:has([name='service'][value='elektrika']:checked) [data-group='elektrika'] {
+    display: grid;
+  }
+  .calc:has([name='elektrika-mode'][value='full']:checked) [data-mode='points'],
+  .calc:has([name='elektrika-mode'][value='points']:checked) [data-mode='full'] {
+    display: none;
+  }
+
+  .calc__block { display: grid; gap: 0.6rem; }
+  .calc__legend { font-weight: 600; }
+  .calc__chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .calc__checks { gap: 0.75rem; }
+  .calc__inc { margin-left: 0.4rem; font-size: var(--step--1); padding: 0.1rem 0.45rem; border-radius: 3px; background: var(--signal-soft); color: var(--ink); }
+  .calc__hint { display: block; font-size: var(--step--1); color: var(--ink-2); }
+  .calc__checks :global(input:disabled) { opacity: 0.55; cursor: not-allowed; }
+
+  .range { display: grid; grid-template-columns: 1fr 5.5rem; gap: 1rem; align-items: center; }
+  .range__out { justify-self: end; font-weight: 650; font-size: var(--step-1); }
+  .range input {
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    accent-color: var(--ink);
+    cursor: pointer;
+  }
+
+  .calc__steppers { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem 1.5rem; }
+  .calc__step { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .calc__step-label { font-size: 0.9375rem; }
+  .calc__steppers .check { grid-column: 1 / -1; }
+
+  /* The estimate as a contractor's receipt, torn along the bottom edge. */
+  .receipt {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    display: grid;
+    gap: 0.85rem;
+    padding: 1.5rem 1.5rem 2.25rem;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: var(--r-m) var(--r-m) 0 0;
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 18px 100%;
+  }
+  .receipt__title { font-size: 1rem; font-weight: 600; letter-spacing: 0; font-variation-settings: normal; color: var(--ink-2); outline: none; }
+  .receipt__total { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; font-variation-settings: 'SHRP' 100; }
+  .receipt__sub { margin-top: -0.6rem; color: var(--ink-2); font-size: var(--step--1); }
+  .receipt__lines { list-style: none; padding: 0.85rem 0 0; margin: 0; display: grid; gap: 0.5rem; border-top: 1px dashed var(--line-strong); font-size: 0.9375rem; }
+  .receipt__lines :global(li) { display: flex; justify-content: space-between; gap: 1rem; }
+  .receipt__lines :global(li span:last-child) { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .receipt__included { font-size: var(--step--1); color: var(--ok); font-weight: 500; }
+  .receipt__not { padding-top: 0.85rem; border-top: 1px dashed var(--line-strong); font-size: var(--step--1); color: var(--ink-2); }
+  .receipt__not-title { font-weight: 600; color: var(--ink); margin-bottom: 0.25rem; }
+  .receipt__not ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.2rem; }
+  .receipt__note { display: flex; gap: 0.6rem; padding: 0.8rem 0.9rem; background: var(--signal-soft); border-radius: var(--r-s); font-size: 0.9375rem; }
+  .receipt__note :global(.icon) { margin-top: 0.15em; }
+
+  .calc__mobile-total { display: none; }
+
+  @media (max-width: 960px) {
+    .calc__grid { grid-template-columns: 1fr; }
+    .receipt { position: static; }
+    .calc__mobile-total {
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      margin-inline: calc(-1 * var(--gutter));
+      padding: 0.75rem var(--gutter) calc(0.75rem + env(safe-area-inset-bottom));
+      background: var(--ink);
+      color: var(--bg);
+      text-decoration: none;
+    }
+    .calc__mobile-total strong { font-size: var(--step-1); }
+  }
+  @media (max-width: 480px) {
+    .calc__steppers { grid-template-columns: 1fr; }
+    .range { grid-template-columns: 1fr 4.5rem; }
+  }
+</style>
+
+<script>
+  import { animate } from 'animejs';
+  import {
+    estimateElektrika,
+    estimateOkna,
+    estimatePotolki,
+    estimateRemont,
+    estimateSantehnika,
+    type Estimate,
+    type ServiceId,
+  } from '../../data/pricing';
+  import { rubRange } from '../../lib/format';
+  import { focusQuietly, prefersReducedMotion } from '../../lib/motion';
+  import { sendToRequest } from '../../lib/prefill';
+  import { track } from '../../lib/consent';
+
+  const form = document.querySelector<HTMLFormElement>('[data-calc]');
+  const section = document.getElementById('raschet');
+
+  if (form && section) {
+    const totalEl = section.querySelector<HTMLElement>('[data-total]')!;
+    const miniEl = section.querySelector<HTMLElement>('[data-total-mini]')!;
+    const linesEl = section.querySelector<HTMLUListElement>('[data-lines]')!;
+    const notEl = section.querySelector<HTMLUListElement>('[data-not]')!;
+    const includedEl = section.querySelector<HTMLElement>('[data-included]')!;
+    const statusEl = section.querySelector<HTMLElement>('[data-calc-status]')!;
+    const sendBtn = section.querySelector<HTMLButtonElement>('[data-calc-send]')!;
+
+    const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement | RadioNodeList | null;
+    const num = (name: string) => Number((field(name) as HTMLInputElement | null)?.value ?? 0);
+    const on = (name: string) => !!(field(name) as HTMLInputElement | null)?.checked;
+    const pick = (name: string) => (field(name) as RadioNodeList | null)?.value ?? '';
+    const service = () => pick('service') as ServiceId;
+
+    const estimate = (): Estimate => {
+      switch (service()) {
+        case 'potolki':
+          return estimatePotolki({
+            area: num('potolki-area'), rooms: num('potolki-rooms'), finish: pick('potolki-finish') as never,
+            spots: num('potolki-spots'), chandeliers: num('potolki-chandeliers'), shadow: on('potolki-shadow'),
+          });
+        case 'okna':
+          return estimateOkna({
+            regular: num('okna-regular'), triple: num('okna-triple'), balcony: num('okna-balcony'),
+            warm: on('okna-warm'), slopes: on('okna-slopes'), sills: on('okna-sills'), nets: on('okna-nets'),
+          });
+        case 'santehnika':
+          return estimateSantehnika({
+            mixer: num('santehnika-mixer'), toilet: num('santehnika-toilet'), installation: num('santehnika-installation'),
+            sink: num('santehnika-sink'), bath: num('santehnika-bath'), shower: num('santehnika-shower'),
+            appliance: num('santehnika-appliance'), towel: num('santehnika-towel'), piping: on('santehnika-piping'),
+          });
+        case 'elektrika':
+          return estimateElektrika({
+            full: pick('elektrika-mode') === 'full', area: num('elektrika-area'), outlets: num('elektrika-outlets'),
+            newPoints: num('elektrika-newPoints'), spots: num('elektrika-spots'), chandeliers: num('elektrika-chandeliers'),
+            panel: on('elektrika-panel'),
+          });
+        default:
+          return estimateRemont({
+            area: num('remont-area'), level: pick('remont-level') as never, bathroom: pick('remont-bathroom') as never,
+            demolition: on('remont-demolition'), materials: on('remont-materials'), debris: on('remont-debris'),
+          });
+      }
+    };
+
+    // Extras that the chosen level already includes are shown ticked, locked and labelled «уже входит».
+    // The visitor's own choice is remembered and comes back when they switch to a level without them.
+    const included: Record<string, string[]> = {
+      cosmetic: [],
+      capital: ['remont-demolition'],
+      turnkey: ['remont-demolition', 'remont-materials', 'remont-debris'],
+    };
+    const ownChoice = new Map<string, boolean>();
+    const syncExtras = () => {
+      const inc = included[pick('remont-level')] ?? [];
+      for (const name of ['remont-demolition', 'remont-materials', 'remont-debris']) {
+        const box = field(name) as HTMLInputElement;
+        const isInc = inc.includes(name);
+        if (isInc && !box.disabled) ownChoice.set(name, box.checked);
+        if (!isInc && box.disabled) box.checked = ownChoice.get(name) ?? box.checked;
+        if (isInc) box.checked = true;
+        box.disabled = isInc;
+        section.querySelector<HTMLElement>(`[data-inc="${name}"]`)!.hidden = !isInc;
+      }
+    };
+
+    const shown = { min: 0, max: 0 };
+    let statusTimer = 0;
+    let latest: Estimate | null = null;
+
+    const listItem = (label: string, value?: string) => {
+      const li = document.createElement('li');
+      const a = document.createElement('span');
+      a.textContent = label;
+      li.append(a);
+      if (value) {
+        const b = document.createElement('span');
+        b.textContent = value;
+        li.append(b);
+      }
+      return li;
+    };
+
+    const render = () => {
+      const e = (latest = estimate());
+      const empty = e.total[1] === 0;
+      linesEl.replaceChildren(...(empty ? [listItem('Добавьте хотя бы одну работу')] : e.lines.map((l) => listItem(l.label, rubRange(l.range)))));
+      notEl.replaceChildren(...e.notIncluded.map((t) => listItem(t)));
+      includedEl.hidden = !e.included;
+      includedEl.textContent = e.included ?? '';
+      sendBtn.disabled = empty;
+
+      const paint = () => {
+        const text = empty ? '0 ₽' : rubRange([Math.round(shown.min / 100) * 100, Math.round(shown.max / 100) * 100]);
+        totalEl.textContent = text;
+        miniEl.textContent = text;
+      };
+      if (prefersReducedMotion()) {
+        shown.min = e.total[0];
+        shown.max = e.total[1];
+        paint();
+      } else {
+        animate(shown, { min: e.total[0], max: e.total[1], duration: 450, ease: 'out(3)', onUpdate: paint, onComplete: () => { totalEl.textContent = empty ? '0 ₽' : rubRange(e.total); miniEl.textContent = totalEl.textContent; } });
+      }
+
+      // Screen readers hear the result once the visitor stops moving the slider.
+      clearTimeout(statusTimer);
+      statusTimer = window.setTimeout(() => {
+        statusEl.textContent = empty ? 'Добавьте хотя бы одну работу.' : `Примерно ${rubRange(e.total)} за работу.`;
+      }, 700);
+    };
+
+    form.addEventListener('submit', (e) => e.preventDefault());
+
+    let tracked = false;
+    form.addEventListener('input', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.type === 'range') {
+        const out = form.querySelector<HTMLOutputElement>(`output[for="${t.id}"]`);
+        if (out) out.textContent = `${t.value} ${out.dataset.unit ?? ''}`.trim();
+      }
+      if (t.name === 'remont-level') syncExtras();
+      if (!tracked) {
+        track('calculator');
+        tracked = true;
+      }
+      render();
+    });
+
+    form.addEventListener('click', (e) => {
+      const btn = (e.target as Element).closest<HTMLButtonElement>('[data-delta]');
+      if (!btn) return;
+      const input = btn.parentElement?.querySelector<HTMLInputElement>('input')!;
+      const next = Math.min(Number(input.max), Math.max(Number(input.min), Number(input.value || 0) + Number(btn.dataset.delta)));
+      input.value = String(next);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    // Typed numbers are clamped when the field loses focus.
+    form.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.type !== 'number') return;
+      const v = Math.round(Number(t.value));
+      t.value = String(Math.min(Number(t.max), Math.max(Number(t.min), Number.isFinite(v) ? v : Number(t.min))));
+      render();
+    });
+
+    sendBtn.addEventListener('click', () => {
+      if (!latest) return;
+      const lines = latest.lines.map((l) => l.label).join('; ');
+      sendToRequest({ service: service(), text: `Расчёт на сайте: ${lines}. Ориентировочно ${rubRange(latest.total)} за работу.` });
+    });
+
+    // «#raschet-okna» from a service page or a panel button preselects the service.
+    const applyHash = () => {
+      const m = location.hash.match(/^#raschet-(remont|potolki|okna|santehnika|elektrika)$/);
+      if (!m) return;
+      const radio = form.querySelector<HTMLInputElement>(`input[name="service"][value="${m[1]}"]`);
+      if (!radio) return;
+      radio.checked = true;
+      render();
+      section.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      focusQuietly(section.querySelector<HTMLElement>('#calc-title'));
+    };
+    addEventListener('hashchange', applyHash);
+
+    syncExtras();
+    render();
+    applyHash();
+  }
+</script>

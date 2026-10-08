@@ -1,0 +1,207 @@
+---
+import { withBase } from '../lib/url';
+import Icon from './Icon.astro';
+---
+
+<!-- Early in the DOM on purpose: keyboard and screen reader users meet it first. -->
+<section class="consent" aria-labelledby="consent-title" data-consent-banner hidden>
+  <h2 id="consent-title" class="consent__title"><Icon name="cookie" /> Cookie и данные в браузере</h2>
+  <p class="consent__text">
+    Без спроса мы храним только ваш выбор в этом окне и тему оформления. Анонимную статистику включим, только если разрешите.
+    Рекламы и сторонних счётчиков здесь нет. <a href={withBase('/cookies/')}>Подробнее</a>
+  </p>
+  <div class="consent__actions">
+    <button type="button" class="btn btn--dark btn--small" data-consent-choice="all">Разрешить статистику</button>
+    <button type="button" class="btn btn--dark btn--small" data-consent-choice="necessary">Только необходимые</button>
+    <button type="button" class="btn btn--ghost btn--small" data-consent-open>Настроить</button>
+  </div>
+</section>
+
+<dialog class="consent-dialog" aria-labelledby="consent-dialog-title" data-consent-dialog>
+  <form method="dialog" class="consent-dialog__body" data-consent-form>
+    <div class="consent-dialog__head">
+      <h2 id="consent-dialog-title" class="h3">Настройки cookie</h2>
+      <button type="submit" value="cancel" class="consent-dialog__close" formnovalidate>
+        <Icon name="x" /><span class="visually-hidden">Закрыть без сохранения</span>
+      </button>
+    </div>
+    <p class="muted">Сайт не ставит cookie. Похожая технология, хранилище браузера, используется только для того, что описано ниже.</p>
+
+    <fieldset class="consent-cat">
+      <legend class="visually-hidden">Категории</legend>
+      <label class="check">
+        <input type="checkbox" checked disabled aria-describedby="cat-necessary" />
+        <span><strong>Необходимые</strong> <span class="consent-cat__tag">всегда включены</span></span>
+      </label>
+      <p id="cat-necessary" class="consent-cat__text">Ваш выбор в этом окне и тема оформления, если вы её переключали. Без этого сайт будет спрашивать заново на каждой странице.</p>
+
+      <label class="check">
+        <input type="checkbox" name="analytics" aria-describedby="cat-stats" data-consent-analytics />
+        <span><strong>Статистика</strong></span>
+      </label>
+      <p id="cat-stats" class="consent-cat__text">
+        Анонимные счётчики: сколько раз открывали страницы, калькулятор, помощника и форму. Без имён, телефонов и идентификаторов.
+        В этой демо-сборке счётчики никуда не отправляются: они лежат в вашем браузере, их можно посмотреть и удалить на странице
+        <a href={withBase('/data/')}>«Ваши данные»</a>. Хранятся 30 дней.
+      </p>
+    </fieldset>
+    <p class="small muted">Рекламных и маркетинговых cookie на сайте нет, поэтому и переключателя для них нет.</p>
+
+    <div class="consent-dialog__actions">
+      <button type="submit" value="save" class="btn btn--primary">Сохранить выбор</button>
+      <button type="submit" value="necessary" class="btn btn--ghost">Только необходимые</button>
+    </div>
+  </form>
+</dialog>
+
+<p class="visually-hidden" role="status" data-consent-status></p>
+
+<style>
+  /* Desktop: a low bar along the bottom edge, so it never sits on top of the hero buttons. */
+  .consent {
+    position: fixed;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 16px;
+    z-index: var(--z-banner);
+    max-width: 1120px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.3rem 2rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-m);
+    box-shadow: 0 18px 40px -18px color-mix(in oklab, var(--ink) 45%, transparent);
+  }
+  .consent__actions { grid-column: 2; grid-row: 1 / span 2; }
+  @media (max-width: 960px) {
+    .consent { grid-template-columns: 1fr; max-width: 560px; margin-inline: 0; }
+    .consent__actions { grid-column: 1; grid-row: auto; }
+  }
+  .consent__title {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+    font-variation-settings: normal;
+  }
+  .consent__text { font-size: 0.9375rem; color: var(--ink-2); max-width: 78ch; }
+  .consent__text a { color: var(--ink); }
+  .consent__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .consent__actions .btn { flex: 1 1 auto; }
+
+  @media (max-width: 560px) {
+    .consent {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-width: none;
+      border-radius: var(--r-m) var(--r-m) 0 0;
+      max-height: 70dvh;
+      overflow-y: auto;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+    .consent__actions { display: grid; grid-template-columns: 1fr 1fr; }
+    .consent__actions [data-consent-open] { grid-column: 1 / -1; }
+  }
+
+  .consent-dialog { width: min(100vw - 24px, 560px); }
+  .consent-dialog__body { display: grid; gap: 1rem; padding: clamp(1.25rem, 1rem + 1.5vw, 2rem); }
+  .consent-dialog__head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .consent-dialog__close {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--r-s);
+    background: transparent;
+    cursor: pointer;
+  }
+  .consent-cat {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-s);
+    background: var(--bg);
+  }
+  .consent-cat .check + .consent-cat__text { margin-bottom: 0.5rem; }
+  .consent-cat__text { padding-left: calc(22px + 0.75rem); font-size: 0.9375rem; color: var(--ink-2); }
+  .consent-cat__text a { color: var(--ink); }
+  .consent-cat__tag { font-size: var(--step--1); color: var(--ink-2); font-weight: 400; margin-left: 0.35rem; }
+  .consent-cat input:disabled { opacity: 0.6; cursor: not-allowed; }
+  .consent-dialog__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+</style>
+
+<script>
+  import { animate } from 'motion/mini';
+  import { CONSENT_EVENT, applyConsent, getConsent, setConsent } from '../lib/consent';
+  import { EASE, prefersReducedMotion } from '../lib/motion';
+
+  const banner = document.querySelector<HTMLElement>('[data-consent-banner]');
+  const dialog = document.querySelector<HTMLDialogElement>('[data-consent-dialog]');
+  const analyticsBox = document.querySelector<HTMLInputElement>('[data-consent-analytics]');
+  const status = document.querySelector<HTMLElement>('[data-consent-status]');
+
+  const consent = getConsent();
+  applyConsent(consent);
+
+  const showBanner = () => {
+    if (!banner) return;
+    banner.hidden = false;
+    document.documentElement.classList.add('consent-pending');
+    if (!prefersReducedMotion()) animate(banner, { opacity: [0, 1], transform: ['translateY(16px)', 'translateY(0)'] }, { duration: 0.4, delay: 0.6, ease: EASE });
+  };
+
+  const hideBanner = () => {
+    if (!banner || banner.hidden) return;
+    const hadFocus = banner.contains(document.activeElement);
+    banner.hidden = true;
+    document.documentElement.classList.remove('consent-pending');
+    // The focused button just disappeared: continue from the top of the page instead of losing focus.
+    if (hadFocus) document.querySelector<HTMLElement>('.header__logo')?.focus();
+  };
+
+  const announce = (text: string) => {
+    if (status) status.textContent = text;
+  };
+
+  if (!consent) showBanner();
+  // The choice was deleted on the «Ваши данные» page: ask again, as on a first visit.
+  addEventListener(CONSENT_EVENT, (e) => {
+    if ((e as CustomEvent).detail === null) showBanner();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-consent-choice]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const all = btn.dataset.consentChoice === 'all';
+      setConsent(all);
+      hideBanner();
+      announce(all ? 'Статистика разрешена. Выбор сохранён.' : 'Сохранены только необходимые. Статистика выключена.');
+    }),
+  );
+
+  // Every «Настроить» / «Настройки cookie» button opens the same dialog with the current choice.
+  document.addEventListener('click', (e) => {
+    const opener = (e.target as Element).closest('[data-consent-open]');
+    if (!opener || !dialog || !analyticsBox) return;
+    analyticsBox.checked = getConsent()?.analytics ?? false;
+    dialog.showModal();
+    if (!prefersReducedMotion()) animate(dialog, { opacity: [0, 1], transform: ['scale(0.97)', 'scale(1)'] }, { duration: 0.22, ease: EASE });
+  });
+
+  dialog?.addEventListener('close', () => {
+    const action = dialog.returnValue;
+    dialog.returnValue = '';
+    if (action !== 'save' && action !== 'necessary') return;
+    const allowed = action === 'save' && !!analyticsBox?.checked;
+    setConsent(allowed);
+    hideBanner();
+    announce(allowed ? 'Статистика разрешена. Выбор сохранён.' : 'Статистика выключена. Выбор сохранён.');
+  });
+</script>

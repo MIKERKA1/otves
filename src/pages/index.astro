@@ -1,0 +1,42 @@
+---
+import { withBase } from '../lib/url';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/home/Hero.astro';
+import Promises from '../components/home/Promises.astro';
+import Services from '../components/home/Services.astro';
+import Helper from '../components/home/Helper.astro';
+import Calculator from '../components/home/Calculator.astro';
+import Projects from '../components/home/Projects.astro';
+import Process from '../components/home/Process.astro';
+import Contract from '../components/home/Contract.astro';
+import Faq from '../components/Faq.astro';
+import RequestForm from '../components/RequestForm.astro';
+import MobileBar from '../components/MobileBar.astro';
+import { faq } from '../data/content';
+import { site } from '../data/site';
+
+// Only WebSite: describing a business that does not exist as LocalBusiness would mislead search engines.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: site.name,
+  description: site.description,
+  inLanguage: 'ru',
+  url: new URL(withBase('/'), Astro.site).href,
+};
+---
+
+<Base>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+  <Hero />
+  <Promises />
+  <Services />
+  <Helper />
+  <Calculator />
+  <Projects />
+  <Process />
+  <Contract />
+  <Faq items={faq} />
+  <RequestForm />
+  <MobileBar slot="after" />
+</Base>

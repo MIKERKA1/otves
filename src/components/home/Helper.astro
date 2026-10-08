@@ -1,0 +1,220 @@
+---
+import { withBase } from '../../lib/url';
+import Icon, { type IconName } from '../Icon.astro';
+import { helper, type HelperResult } from '../../data/helper';
+import { serviceById } from '../../data/services';
+import { rubBetween, rubFrom } from '../../lib/format';
+
+const catIcon: Record<string, IconName> = {
+  drop: 'drop',
+  lightning: 'lightning',
+  frame: 'app-window',
+  ceiling: 'lamp-pendant',
+  house: 'house-line',
+};
+
+const priceText = (p: HelperResult['price']) =>
+  p === null ? 'Назовём после осмотра' : 'from' in p ? rubFrom(p.from, p.unit) : rubBetween(p);
+---
+
+<section id="pomoshnik" class="helper" aria-labelledby="helper-title">
+  <div class="container helper__grid">
+    <div class="helper__intro">
+      <h2 id="helper-title" class="h2">Не знаете, что именно нужно?</h2>
+      <p class="helper__lead">Опишите, что случилось. Подскажем, какой мастер нужен, сколько это примерно стоит и что сделать до его приезда.</p>
+      <p class="helper__alt">Ничего не подходит? <a href="#zayavka" data-helper-free>Опишите своими словами в заявке</a></p>
+    </div>
+
+    <div class="helper__app" data-helper>
+      <div class="helper__step" data-step="category">
+        <h3 class="helper__q" tabindex="-1">Где проблема?</h3>
+        <ul class="helper__options">
+          {helper.map((c) => (
+            <li>
+              <button type="button" class="helper__option" data-category={c.id}>
+                <Icon name={catIcon[c.icon] ?? 'info'} /><span>{c.label}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {helper.map((c) => (
+        <div class="helper__step" data-step="symptom" data-for={c.id} hidden>
+          <p class="helper__trail">{c.label}</p>
+          <h3 class="helper__q" tabindex="-1">Что именно случилось?</h3>
+          <ul class="helper__options">
+            {c.options.map((o) => (
+              <li>
+                <button type="button" class="helper__option" data-result={`${c.id}/${o.id}`}>
+                  <span>{o.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button type="button" class="helper__back" data-back="category"><Icon name="arrow-left" /> Назад</button>
+        </div>
+      ))}
+
+      {helper.flatMap((c) =>
+        c.options.map((o) => {
+          const svc = serviceById(o.result.service);
+          const r = o.result;
+          return (
+            <div class="helper__step helper__result" data-step="result" data-for={`${c.id}/${o.id}`} hidden>
+              <p class="helper__trail">{c.label}: {o.label.toLowerCase()}</p>
+              {r.urgent && (
+                <p class="helper__urgent"><Icon name="warning" /><span>{r.urgent}</span></p>
+              )}
+              <h3 class="helper__q" tabindex="-1">{r.title}</h3>
+              <p class="helper__what">{r.what}</p>
+              <dl class="helper__facts">
+                <div><dt>Кто приедет</dt><dd><a href={withBase(`/uslugi/${svc.id}/`)}>{svc.title}</a></dd></div>
+                <div><dt>Сколько займёт</dt><dd>{r.time}</dd></div>
+                <div><dt>Примерно стоит</dt><dd class="num">{priceText(r.price)}</dd></div>
+              </dl>
+              <p class="helper__prepare"><strong>До приезда мастера.</strong> {r.prepare}</p>
+              <div class="helper__actions">
+                <button
+                  type="button"
+                  class="btn btn--primary"
+                  data-helper-send
+                  data-service={svc.id}
+                  data-text={`${o.label}. Помощник на сайте подсказал: ${r.title.toLowerCase()}.`}
+                >
+                  Оставить заявку с этим описанием
+                </button>
+                <button type="button" class="helper__back" data-back="category"><Icon name="arrow-counter-clockwise" /> Начать сначала</button>
+              </div>
+            </div>
+          );
+        }),
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The one colour block on the page: the moment a confused visitor gets a straight answer. */
+  .helper {
+    background: var(--inverse);
+    color: var(--on-inverse);
+    padding-block: var(--section);
+  }
+  .helper :global(:focus-visible) { outline-color: var(--signal); }
+  .helper a { color: var(--on-inverse); }
+  .helper__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    align-items: start;
+  }
+  .helper__lead { margin-top: 1rem; font-size: var(--step-1); color: var(--on-inverse-2); max-width: 40ch; }
+  .helper__alt { margin-top: 1.5rem; color: var(--on-inverse-2); }
+
+  .helper__app {
+    min-height: 420px;
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+    border: 1px solid color-mix(in oklab, var(--on-inverse) 20%, transparent);
+    border-radius: var(--r-m);
+  }
+  .helper__step { display: grid; gap: 1rem; }
+  .helper__q { font-size: var(--step-3); outline: none; }
+  .helper__trail { color: var(--signal); font-weight: 550; font-size: 0.9375rem; }
+  .helper__options { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+  .helper__option {
+    width: 100%;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 56px;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid color-mix(in oklab, var(--on-inverse) 30%, transparent);
+    border-radius: var(--r-s);
+    background: transparent;
+    color: var(--on-inverse);
+    font-size: 1.0625rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+  .helper__option:hover { border-color: var(--signal); background: color-mix(in oklab, var(--signal) 10%, transparent); }
+  .helper__option :global(.icon) { color: var(--signal); width: 1.4em; height: 1.4em; }
+  .helper__back {
+    justify-self: start;
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.25rem 0;
+    border: 0;
+    background: none;
+    color: var(--on-inverse-2);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .helper__back:hover { color: var(--on-inverse); text-decoration: underline; }
+
+  .helper__urgent {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--r-s);
+    background: var(--signal);
+    color: var(--on-signal);
+    font-weight: 550;
+  }
+  .helper__urgent :global(.icon) { margin-top: 0.15em; }
+  .helper__what { color: var(--on-inverse-2); max-width: 60ch; }
+  .helper__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding-block: 1rem; border-block: 1px solid color-mix(in oklab, var(--on-inverse) 18%, transparent); }
+  .helper__facts dt { font-size: var(--step--1); color: var(--on-inverse-2); }
+  .helper__facts dd { margin-top: 0.2rem; font-weight: 600; }
+  .helper__prepare { max-width: 62ch; }
+  .helper__actions { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; }
+  .helper__actions .btn { white-space: normal; text-align: left; }
+
+  @media (max-width: 900px) {
+    .helper__grid { grid-template-columns: 1fr; }
+    .helper__app { min-height: 0; }
+  }
+  @media (max-width: 560px) {
+    .helper__facts { grid-template-columns: 1fr; }
+    .helper__actions .btn { width: 100%; justify-content: center; }
+  }
+</style>
+
+<script>
+  import { reveal, focusQuietly } from '../../lib/motion';
+  import { sendToRequest } from '../../lib/prefill';
+  import { track } from '../../lib/consent';
+  import type { ServiceId } from '../../data/pricing';
+
+  const app = document.querySelector<HTMLElement>('[data-helper]');
+  if (app) {
+    const steps = [...app.querySelectorAll<HTMLElement>('[data-step]')];
+
+    const show = (step: HTMLElement | undefined) => {
+      if (!step) return;
+      steps.forEach((s) => (s.hidden = s !== step));
+      reveal(step, 14);
+      // Focus follows the question, so screen readers hear it and Tab continues from here.
+      focusQuietly(step.querySelector<HTMLElement>('.helper__q'));
+      if (step.dataset.step === 'result') track('helper');
+    };
+
+    app.addEventListener('click', (e) => {
+      const t = (e.target as Element).closest<HTMLElement>('button');
+      if (!t) return;
+      if (t.dataset.category) show(steps.find((s) => s.dataset.step === 'symptom' && s.dataset.for === t.dataset.category));
+      else if (t.dataset.result) show(steps.find((s) => s.dataset.step === 'result' && s.dataset.for === t.dataset.result));
+      else if (t.dataset.back) show(steps.find((s) => s.dataset.step === t.dataset.back));
+      else if ('helperSend' in t.dataset) sendToRequest({ service: t.dataset.service as ServiceId, text: t.dataset.text });
+    });
+  }
+
+  document.querySelector('[data-helper-free]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    sendToRequest({ service: 'unknown' });
+  });
+</script>

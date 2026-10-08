@@ -1,0 +1,58 @@
+---
+import Icon from './Icon.astro';
+import type { Faq } from '../data/services';
+
+interface Props {
+  items: Faq[];
+  title?: string;
+  id?: string;
+}
+const { items, title = 'Частые вопросы', id = 'voprosy' } = Astro.props;
+---
+
+<section {id} class="section faq" aria-labelledby={`${id}-title`}>
+  <div class="container faq__grid">
+    <div class="faq__aside">
+      <h2 id={`${id}-title`} class="h2">{title}</h2>
+      <p class="faq__more">Не нашли ответ? Напишите вопрос в заявке, прораб ответит, когда перезвонит.</p>
+    </div>
+    <div class="faq__list">
+      {items.map((f) => (
+        <details class="faq__item">
+          <summary>
+            <span>{f.q}</span>
+            <Icon name="caret-down" class="faq__caret" />
+          </summary>
+          <div class="faq__a"><p>{f.a}</p></div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__grid { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: clamp(2rem, 1rem + 4vw, 5rem); align-items: start; }
+  .faq__aside { position: sticky; top: calc(var(--header-h) + 24px); }
+  .faq__more { margin-top: 1rem; color: var(--ink-2); max-width: 34ch; }
+  .faq__list { border-top: 1px solid var(--line); }
+  .faq__item { border-bottom: 1px solid var(--line); }
+  .faq__item summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    min-height: 64px;
+    padding-block: 1rem;
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .faq__item summary:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+  .faq__item :global(.faq__caret) { flex: none; transition: transform 0.25s var(--ease-out); }
+  .faq__item[open] :global(.faq__caret) { transform: rotate(180deg); }
+  .faq__a { padding-bottom: 1.25rem; color: var(--ink-2); max-width: 64ch; }
+  @media (max-width: 860px) {
+    .faq__grid { grid-template-columns: 1fr; }
+    .faq__aside { position: static; }
+  }
+</style>

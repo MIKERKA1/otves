@@ -1,0 +1,114 @@
+---
+import { ceilingFinishes } from '../../data/services';
+import { rubFrom } from '../../lib/format';
+
+interface Props {
+  uid: string;
+}
+const { uid } = Astro.props;
+const spots = [
+  [110, 38], [200, 38], [290, 38],
+  [150, 62], [250, 62],
+];
+---
+
+<div class="ceil">
+  <svg class="ceil__room" viewBox="0 0 400 250" role="img" aria-label="Комната с натяжным потолком: фактура меняется по выбору ниже">
+    <defs>
+      <radialGradient id={`${uid}-sheen`} cx="50%" cy="30%" r="65%">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.85" />
+        <stop offset="1" stop-color="#fff" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id={`${uid}-glow`}>
+        <stop offset="0" stop-color="#ffe9a3" stop-opacity="0.9" />
+        <stop offset="1" stop-color="#ffe9a3" stop-opacity="0" />
+      </radialGradient>
+      <pattern id={`${uid}-weave`} width="6" height="6" patternUnits="userSpaceOnUse">
+        <path d="M0 3H6M3 0V6" class="ceil__weave" />
+      </pattern>
+      <clipPath id={`${uid}-clip`}><path d="M0 0H400L290 78H110Z" /></clipPath>
+    </defs>
+    <!-- walls and floor -->
+    <path d="M0 0L110 78V196L0 250Z" class="ceil__wall ceil__wall--side" />
+    <path d="M400 0L290 78V196L400 250Z" class="ceil__wall ceil__wall--side" />
+    <rect x="110" y="78" width="180" height="118" class="ceil__wall" />
+    <path d="M0 250L110 196H290L400 250Z" class="ceil__floor" />
+    <rect x="165" y="98" width="70" height="72" class="ceil__window" />
+    <path d="M200 98V170M165 134H235" class="ceil__frame" />
+    <rect x="135" y="176" width="130" height="34" rx="4" class="ceil__sofa" />
+    <!-- ceiling with finish layers -->
+    <g class="ceil__ceiling">
+      <path d="M0 0H400L290 78H110Z" class="ceil__base" />
+      <path d="M0 0H400L290 78H110Z" fill={`url(#${uid}-sheen)`} class="ceil__sheen" />
+      <path d="M0 0H400L290 78H110Z" fill={`url(#${uid}-weave)`} class="ceil__fabric" />
+      <g clip-path={`url(#${uid}-clip)`} class="ceil__mirror">
+        <rect x="165" y="-14" width="70" height="72" class="ceil__window" transform="matrix(1 0 0 -0.55 0 44)" />
+        <rect x="135" y="-40" width="130" height="34" rx="4" class="ceil__sofa" transform="matrix(1 0 0 -0.4 0 10)" />
+      </g>
+    </g>
+    <g class="ceil__spots">
+      {spots.map(([x, y]) => (
+        <g>
+          <circle cx={x} cy={y} r="18" fill={`url(#${uid}-glow)`} />
+          <circle cx={x} cy={y} r="3.5" class="ceil__spot" />
+        </g>
+      ))}
+    </g>
+    <path d="M0 0L110 78M400 0L290 78" class="ceil__edge" />
+  </svg>
+
+  <fieldset>
+    <legend class="ceil__legend">Фактура полотна</legend>
+    <div class="ceil__picker">
+      {ceilingFinishes.map((f) => (
+        <label class="chip">
+          <input type="radio" name={`${uid}-finish`} value={f.id} checked={f.id === 'matte'} />
+          <span>{f.title}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+  <label class="check ceil__lights">
+    <input type="checkbox" name={`${uid}-spots`} checked />
+    <span>Встроенные светильники</span>
+  </label>
+
+  {ceilingFinishes.map((f) => (
+    <p class="ceil__desc" data-finish={f.id}>
+      {f.text} <strong class="num">{rubFrom(f.from, 'за м²')}</strong>
+    </p>
+  ))}
+</div>
+
+<style>
+  .ceil { display: grid; gap: 1rem; }
+  .ceil__room { width: 100%; max-width: 460px; border-radius: var(--r-s); background: var(--sunken); }
+  .ceil__wall { fill: light-dark(#e9ebe6, #2a3035); stroke: var(--line-strong); stroke-width: 1; }
+  .ceil__wall--side { fill: light-dark(#dfe2dc, #23292d); }
+  .ceil__floor { fill: light-dark(#c9a77d, #6c5840); }
+  .ceil__window { fill: light-dark(#cfe1ec, #3b5566); stroke: var(--ink-2); stroke-width: 2; }
+  .ceil__frame { stroke: var(--ink-2); stroke-width: 2; fill: none; }
+  .ceil__sofa { fill: light-dark(#55626b, #7d8a92); }
+  .ceil__edge { stroke: var(--line-strong); stroke-width: 1; }
+  .ceil__base { fill: light-dark(#f6f7f4, #e4e6e1); stroke: var(--line-strong); stroke-width: 1; }
+  .ceil__weave { stroke: light-dark(#d9d5c8, #c8c3b4); stroke-width: 0.8; }
+  .ceil__spot { fill: #fff8de; stroke: var(--ink-2); stroke-width: 1; }
+  .ceil__sheen, .ceil__fabric, .ceil__mirror, .ceil__spots { opacity: 0; transition: opacity 0.4s var(--ease-out); }
+
+  .ceil:has(input[value='satin']:checked) .ceil__sheen { opacity: 0.55; }
+  .ceil:has(input[value='glossy']:checked) .ceil__sheen { opacity: 0.9; }
+  .ceil:has(input[value='glossy']:checked) .ceil__mirror { opacity: 0.45; }
+  .ceil:has(input[value='fabric']:checked) .ceil__fabric { opacity: 1; }
+  .ceil:has(.ceil__lights input:checked) .ceil__spots { opacity: 1; }
+
+  .ceil__legend { font-weight: 600; margin-bottom: 0.6rem; }
+  .ceil__picker { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .ceil__desc { display: none; max-width: 56ch; }
+  .ceil__desc strong { display: block; margin-top: 0.35rem; font-size: var(--step-1); }
+  .ceil:has(input[value='matte']:checked) [data-finish='matte'],
+  .ceil:has(input[value='satin']:checked) [data-finish='satin'],
+  .ceil:has(input[value='glossy']:checked) [data-finish='glossy'],
+  .ceil:has(input[value='fabric']:checked) [data-finish='fabric'] {
+    display: block;
+  }
+</style>

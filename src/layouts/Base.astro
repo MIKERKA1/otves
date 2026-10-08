@@ -1,0 +1,71 @@
+---
+import { withBase } from '../lib/url';
+import '@fontsource-variable/geologica/shrp.css';
+import '../styles/global.css';
+import fontUrl from '@fontsource-variable/geologica/files/geologica-cyrillic-shrp-normal.woff2?url';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CookieConsent from '../components/CookieConsent.astro';
+import IconSprite from '../components/IconSprite.astro';
+import { THEME_INIT } from '../lib/theme-init.mjs';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const { title, description = site.description, noindex = false } = Astro.props;
+const pageTitle = title ? `${title} | ${site.name}` : site.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(withBase('/og.png'), Astro.site);
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#eef0ec" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15181b" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
+    <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline set:html={THEME_INIT} />
+    <slot name="head" />
+  </head>
+  <body>
+    <IconSprite />
+    <a class="skip-link" href="#main">Перейти к содержимому</a>
+    <CookieConsent />
+    <Header />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <slot name="after" />
+  </body>
+</html>
+
+<style is:global>
+  main:focus { outline: none; }
+</style>

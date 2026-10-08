@@ -1,0 +1,362 @@
+---
+import { withBase } from '../../lib/url';
+import Icon, { type IconName } from '../Icon.astro';
+import { services } from '../../data/services';
+import { rubFrom } from '../../lib/format';
+import type { ServiceId } from '../../data/pricing';
+
+const zoneIcon: Record<ServiceId, IconName> = {
+  remont: 'wall',
+  potolki: 'lamp-pendant',
+  okna: 'app-window',
+  santehnika: 'drop',
+  elektrika: 'lightning',
+};
+
+// Plan geometry, in centimetres of a 9 × 6 m flat drawn at (70, 60).
+const windows = [
+  [140, 300],
+  [390, 550],
+  [700, 880],
+];
+const outlets = [
+  'M251 476A9 9 0 0 1 269 476Z',
+  'M551 476A9 9 0 0 1 569 476Z',
+  'M74 431A9 9 0 0 1 74 449Z',
+  'M606 291A9 9 0 0 0 606 309Z',
+  'M614 191A9 9 0 0 1 614 209Z',
+  'M966 291A9 9 0 0 0 966 309Z',
+  'M891 476A9 9 0 0 1 909 476Z',
+  'M411 656A9 9 0 0 1 429 656Z',
+  'M271 484A9 9 0 0 0 289 484Z',
+];
+const lights = [
+  [390, 300],
+  [790, 300],
+  [450, 595],
+];
+const spots = [
+  [200, 160], [340, 160], [480, 160],
+  [200, 400], [340, 400], [480, 400],
+  [690, 150], [890, 150], [690, 410], [890, 410],
+];
+const rooms = [
+  { name: 'Кухня-гостиная', area: '22,7 м²', x: 390, y: 212, rect: [70, 60, 540, 420] },
+  { name: 'Спальня', area: '15,1 м²', x: 790, y: 212, rect: [610, 60, 360, 420] },
+  { name: 'Санузел', area: '4,7 м²', x: 245, y: 556, rect: [70, 480, 260, 180] },
+  { name: 'Прихожая', area: '7,9 м²', x: 560, y: 536, rect: [330, 480, 440, 180] },
+  { name: 'Гардероб', area: '3,6 м²', x: 870, y: 556, rect: [770, 480, 200, 180] },
+];
+---
+
+<section class="hero" data-hero aria-labelledby="hero-title">
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <h1 id="hero-title" class="display hero__title" data-anim data-hero-title>Одна команда <span class="nowrap">на всю</span> квартиру</h1>
+      <p class="lead hero__lead" data-anim>Ремонт под ключ или одна розетка: приедем, посмотрим и назовём цену до начала работ.</p>
+      <div class="hero__ctas" data-anim>
+        <a class="btn btn--primary" href="#zayavka">Оставить заявку</a>
+        <a class="btn btn--ghost" href="#raschet"><Icon name="calculator" /> Рассчитать стоимость</a>
+      </div>
+    </div>
+
+    <div class="hero__plan sheet" data-plan data-anim>
+      <fieldset class="picker">
+        <legend class="picker__legend">Что нужно сделать?</legend>
+        <div class="picker__chips">
+          {services.map((s) => (
+            <label class="chip">
+              <input type="radio" name="plan-zone" value={s.id} data-zone-input />
+              <span><Icon name={zoneIcon[s.id]} />{s.short}</span>
+            </label>
+          ))}
+          <a class="picker__unsure" href="#pomoshnik">Не знаю, что нужно</a>
+        </div>
+      </fieldset>
+
+      <div class="plan-wrap">
+        <svg class="plan" viewBox="0 0 1000 690" role="img" aria-labelledby="plan-title plan-desc" data-plan-svg>
+          <title id="plan-title">План двухкомнатной квартиры 54 м²</title>
+          <desc id="plan-desc">Кухня-гостиная, спальня, санузел, прихожая и гардероб. Выберите работу ниже, и на плане подсветится, где она делается.</desc>
+          <defs>
+            <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="14" class="hatch-line" />
+            </pattern>
+          </defs>
+
+          <g class="z z-remont plan__floors" data-zone="remont">
+            {rooms.map((r) => <rect x={r.rect[0]} y={r.rect[1]} width={r.rect[2]} height={r.rect[3]} />)}
+          </g>
+
+          <g class="dims" aria-hidden="true">
+            <path d="M70 26H970M30 60V660" class="dims__line" />
+            <path d="M64 32L76 20M604 32L616 20M964 32L976 20M24 66L36 54M24 486L36 474M24 666L36 654" class="dims__tick" />
+            <text x="340" y="16">5 400</text>
+            <text x="790" y="16">3 600</text>
+            <text x="20" y="270" transform="rotate(-90 20 270)">4 200</text>
+            <text x="20" y="570" transform="rotate(-90 20 570)">1 800</text>
+          </g>
+
+          <g class="z z-potolki plan__ceiling" data-zone="potolki">
+            <rect x="94" y="84" width="492" height="372" data-draw />
+            <rect x="634" y="84" width="312" height="372" data-draw />
+            {spots.map(([x, y]) => <circle cx={x} cy={y} r="7" />)}
+          </g>
+
+          <g class="plan__furniture">
+            <rect x="78" y="110" width="60" height="290" />
+            <circle cx="96" cy="300" r="8" /><circle cx="120" cy="300" r="8" /><circle cx="96" cy="326" r="8" /><circle cx="120" cy="326" r="8" />
+          </g>
+
+          <g class="z z-santehnika plan__fixtures" data-zone="santehnika">
+            <rect x="86" y="170" width="44" height="40" rx="4" />
+            <rect x="80" y="490" width="72" height="160" rx="10" />
+            <rect x="89" y="499" width="54" height="142" rx="20" />
+            <rect x="200" y="488" width="60" height="36" rx="4" />
+            <ellipse cx="230" cy="506" rx="20" ry="11" />
+            <rect x="170" y="604" width="50" height="50" rx="4" />
+            <circle cx="195" cy="629" r="15" />
+            <rect x="268" y="632" width="40" height="18" rx="3" />
+            <ellipse cx="288" cy="608" rx="16" ry="22" />
+          </g>
+
+          <g class="z z-elektrika plan__electric" data-zone="elektrika">
+            <path class="plan__wiring" d="M723 644V500H260V476M723 500H900V476M723 500V600H463" data-draw />
+            <rect x="700" y="640" width="46" height="12" class="plan__panel" />
+            {outlets.map((d) => <path d={d} />)}
+            {lights.map(([x, y]) => (
+              <g class="plan__light">
+                <circle cx={x} cy={y} r="13" />
+                <path d={`M${x! - 9} ${y! - 9}L${x! + 9} ${y! + 9}M${x! + 9} ${y! - 9}L${x! - 9} ${y! + 9}`} />
+              </g>
+            ))}
+          </g>
+
+          <g class="plan__doors">
+            <path d="M430 480V400A80 80 0 0 1 510 480" />
+            <path d="M730 480V400A80 80 0 0 0 650 480" />
+            <path d="M330 600H260A70 70 0 0 1 330 530" />
+            <path d="M770 530H840A70 70 0 0 1 770 600" />
+            <path d="M650 660V570A90 90 0 0 0 560 660" />
+          </g>
+
+          <g class="plan__walls">
+            <path class="wall wall--ext" d="M70 60H140M300 60H390M550 60H700M880 60H970V660H650M560 660H70V60" data-wall />
+            <path class="wall wall--int" d="M70 480H430M510 480H650M730 480H970M610 60V480M330 480V530M330 600V660M770 480V530M770 600V660" data-wall />
+          </g>
+
+          <g class="z z-okna plan__windows" data-zone="okna">
+            {windows.map(([a, b]) => (
+              <g>
+                <rect x={a} y="52" width={b! - a!} height="16" />
+                <path d={`M${a} 60H${b}`} />
+              </g>
+            ))}
+          </g>
+
+          <g class="plan__labels" aria-hidden="true">
+            {rooms.map((r) => (
+              <>
+                <text x={r.x} y={r.y} class="plan__room">{r.name}</text>
+                <text x={r.x} y={r.y + 24} class="plan__area">{r.area}</text>
+              </>
+            ))}
+            <text x="723" y="630" class="plan__note">щиток</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="callout" aria-live="polite">
+        <p class="callout__item callout__item--empty" data-callout="none">Квартира 54 м², масштаб условный. Выберите работу или нажмите на зону плана: покажем, где работает каждый мастер.</p>
+        {services.map((s) => (
+          <div class="callout__item" data-callout={s.id}>
+            <p class="callout__title">{s.title}</p>
+            <p class="callout__text">{s.tagline}</p>
+            <p class="callout__price num">{rubFrom(s.priceFrom, s.priceUnit)}</p>
+            <a class="callout__link" href={withBase(`/uslugi/${s.id}/`)}>Подробнее об услуге</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero { padding-block: clamp(1.5rem, 1rem + 1.5vw, 2.5rem) clamp(2.5rem, 2rem + 3vw, 4.5rem); }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(2rem, 1rem + 3vw, 4.5rem);
+    align-items: center;
+  }
+  .hero__title { font-size: clamp(2.4rem, 1.4rem + 3vw, 3.9rem); }
+  .nowrap { white-space: nowrap; }
+  .hero__lead { margin-top: 1.5rem; }
+  .hero__ctas { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+
+  .sheet {
+    position: relative;
+    padding: clamp(0.85rem, 0.6rem + 1vw, 1.5rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-m);
+  }
+
+  /* --- Plan drawing --- */
+  .plan-wrap { display: grid; place-items: center; }
+  .plan { width: 100%; height: auto; max-height: min(46vh, 460px); overflow: visible; }
+  .plan text { font-family: var(--font); fill: var(--ink-2); font-size: 15px; text-anchor: middle; }
+  .plan .plan__room { fill: var(--ink); font-weight: 600; }
+  .plan .plan__area { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .plan .plan__note { font-size: 12px; }
+  .plan .dims text { font-size: 13px; fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .dims__line, .dims__tick { stroke: var(--line-strong); stroke-width: 1.2; fill: none; }
+
+  .wall { fill: none; stroke: var(--ink); stroke-linecap: square; }
+  .wall--ext { stroke-width: 14; }
+  .wall--int { stroke-width: 7; }
+  .plan__doors path { fill: none; stroke: var(--ink-2); stroke-width: 1.5; }
+  .plan__furniture rect, .plan__furniture circle { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+  .plan__fixtures > * { fill: var(--surface); stroke: var(--ink-2); stroke-width: 2; }
+  .plan__windows rect { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+  .plan__windows path { stroke: var(--ink); stroke-width: 2; }
+  .plan__electric path, .plan__electric rect, .plan__electric circle { fill: var(--surface); stroke: var(--ink-2); stroke-width: 2; }
+  .plan__electric .plan__light path { fill: none; }
+  .plan__wiring { fill: none !important; stroke-dasharray: 8 6; opacity: 0; }
+  .plan__panel { fill: var(--ink-2) !important; }
+  .plan__floors rect { fill: url(#hatch); stroke: none; opacity: 0; }
+  .hatch-line { stroke: var(--signal); stroke-width: 6; opacity: 0.55; }
+  .plan__ceiling rect { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 10 7; opacity: 0; }
+  .plan__ceiling circle { fill: var(--signal); stroke: var(--ink); stroke-width: 1.5; opacity: 0; }
+
+  .z, .plan__floors rect, .plan__ceiling > *, .plan__wiring {
+    transition: opacity 0.3s var(--ease-out), fill 0.3s, stroke 0.3s;
+  }
+  [data-zone] { cursor: pointer; }
+  .plan__floors { pointer-events: all; }
+
+  /* Selection dims the rest of the drawing and lights up the chosen zone. */
+  .hero__plan:has([data-zone-input]:checked) :is(.plan__fixtures, .plan__electric, .plan__windows, .plan__furniture) { opacity: 0.32; }
+  .hero__plan:has([value='okna']:checked) .plan__windows { opacity: 1; }
+  .hero__plan:has([value='okna']:checked) .plan__windows rect { fill: var(--signal); }
+  .hero__plan:has([value='santehnika']:checked) .plan__fixtures { opacity: 1; }
+  .hero__plan:has([value='santehnika']:checked) .plan__fixtures > * { fill: var(--signal); stroke: var(--ink); }
+  .hero__plan:has([value='elektrika']:checked) .plan__electric { opacity: 1; }
+  .hero__plan:has([value='elektrika']:checked) .plan__electric :is(path, rect, circle) { stroke: var(--ink); }
+  .hero__plan:has([value='elektrika']:checked) .plan__electric > path:not(.plan__wiring), .hero__plan:has([value='elektrika']:checked) .plan__light circle { fill: var(--signal); }
+  .hero__plan:has([value='elektrika']:checked) .plan__wiring { opacity: 1; stroke: var(--ink); }
+  .hero__plan:has([value='potolki']:checked) .plan__ceiling > * { opacity: 1; }
+  .hero__plan:has([value='remont']:checked) .plan__floors rect { opacity: 1; }
+  .hero__plan:has([value='remont']:checked) :is(.plan__fixtures, .plan__electric, .plan__windows, .plan__furniture) { opacity: 0.6; }
+
+  /* --- Picker and callout --- */
+  .picker { margin-bottom: 0.75rem; }
+  .picker__legend { font-weight: 600; margin-bottom: 0.6rem; }
+  .picker__chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .picker :global(.chip span) { padding-inline: 0.8rem; }
+  .picker__unsure {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 0.85rem;
+    border: 1.5px dashed var(--line-strong);
+    border-radius: var(--r-s);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .picker__unsure:hover { border-color: var(--ink); border-style: solid; }
+
+  .callout { margin-top: 0.75rem; min-height: 4.6rem; }
+  .callout__item { display: none; }
+  .hero__plan:not(:has([data-zone-input]:checked)) [data-callout='none'] { display: block; }
+  .hero__plan:has([value='remont']:checked) [data-callout='remont'],
+  .hero__plan:has([value='potolki']:checked) [data-callout='potolki'],
+  .hero__plan:has([value='okna']:checked) [data-callout='okna'],
+  .hero__plan:has([value='santehnika']:checked) [data-callout='santehnika'],
+  .hero__plan:has([value='elektrika']:checked) [data-callout='elektrika'] {
+    display: grid;
+  }
+  .callout__item--empty { color: var(--ink-2); font-size: 0.9375rem; max-width: 60ch; padding-top: 0.25rem; }
+  .callout__item:not(.callout__item--empty) {
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem 1.5rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    border-radius: var(--r-s);
+  }
+  .callout__title { font-weight: 650; font-size: var(--step-1); }
+  .callout__text { grid-column: 1; color: var(--ink-2); }
+  .callout__price { grid-column: 2; grid-row: 1; justify-self: end; font-weight: 650; white-space: nowrap; }
+  .callout__link { grid-column: 2; grid-row: 2; justify-self: end; align-self: end; font-weight: 550; white-space: nowrap; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .hero [data-anim] { opacity: 0; animation: hero-failsafe 0.3s 2.6s forwards; }
+    :global(.js.hero-ready) .hero [data-anim] { animation: none; }
+  }
+  @keyframes hero-failsafe { to { opacity: 1; } }
+
+  @media (max-width: 960px) {
+    .hero__grid { grid-template-columns: 1fr; }
+    /* em, not ch: ch follows the width of «0» in whatever font is loaded, so the fallback wrapped differently. */
+    .hero__title { max-width: 9.5em; }
+  }
+  @media (max-width: 600px) {
+    .hero__ctas .btn { flex: 1 1 100%; }
+    .plan .plan__area, .plan .dims text, .plan .plan__note { display: none; }
+    .plan text { font-size: 34px; }
+    .callout__item:not(.callout__item--empty) { grid-template-columns: 1fr; }
+    .callout__price, .callout__link { grid-column: 1; grid-row: auto; justify-self: start; }
+    .picker__chips { gap: 0.4rem; }
+  }
+</style>
+
+<script>
+  import { animate as animateDraw, createTimeline, stagger, splitText, svg } from 'animejs';
+  import { prefersReducedMotion, reveal } from '../../lib/motion';
+
+  const root = document.querySelector<HTMLElement>('[data-plan]');
+  const inputs = [...document.querySelectorAll<HTMLInputElement>('[data-zone-input]')];
+
+  /* Clicking a zone on the drawing picks the matching radio, so keyboard and pointer share one state. */
+  root?.querySelector('[data-plan-svg]')?.addEventListener('click', (e) => {
+    const zone = (e.target as Element).closest<SVGElement>('[data-zone]')?.dataset.zone;
+    const input = inputs.find((i) => i.value === zone);
+    if (input) {
+      input.checked = true;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+
+  root?.addEventListener('change', (e) => {
+    const input = e.target as HTMLInputElement;
+    if (!input.matches('[data-zone-input]') || prefersReducedMotion()) return;
+    reveal(root.querySelector(`[data-callout="${input.value}"]`), 8);
+    // Lines that belong to the zone draw themselves in, like a pencil on the sheet.
+    const lines = root.querySelectorAll<SVGGeometryElement>(`.z-${input.value} [data-draw]`);
+    if (lines.length) animateDraw(svg.createDrawable(lines), { draw: ['0 0', '0 1'], duration: 700, ease: 'inOut(2)' });
+  });
+
+  /* The one orchestrated moment on the page: the plan is drawn while the headline rises. */
+  const html = document.documentElement;
+  if (prefersReducedMotion()) {
+    html.classList.add('hero-ready');
+  } else {
+    const title = document.querySelector<HTMLElement>('[data-hero-title]');
+    const words = title ? splitText(title, { words: true }).words : [];
+    const details = '.plan__doors path, .plan__windows > g, .plan__fixtures > *, .plan__electric > :not(.plan__wiring), .plan__furniture > *';
+    const later = `.hero__lead, .hero__ctas, ${details}, .plan .dims, .plan__labels, .picker .chip, .picker__unsure`;
+    html.classList.add('hero-ready');
+    // Everything that enters later is hidden at time zero, so nothing flashes before its turn.
+    createTimeline({ defaults: { ease: 'out(3)' } })
+      .set(words, { opacity: 0 }, 0)
+      .set(later, { opacity: 0 }, 0)
+      .set('.hero [data-anim]', { opacity: 1 }, 0)
+      .add(words, { opacity: [0, 1], y: ['0.45em', '0em'], duration: 650, delay: stagger(70) }, 0)
+      .add('.hero__lead, .hero__ctas', { opacity: [0, 1], y: [12, 0], duration: 600, delay: stagger(90) }, 250)
+      .add(svg.createDrawable('[data-wall]'), { draw: ['0 0', '0 1'], duration: 1300, ease: 'inOut(3)', delay: stagger(250) }, 100)
+      .add(details, { opacity: [0, 1], duration: 380, delay: stagger(18) }, 900)
+      .add('.plan .dims, .plan__labels', { opacity: [0, 1], duration: 500 }, 1200)
+      .add('.picker .chip, .picker__unsure', { opacity: [0, 1], y: [8, 0], duration: 420, delay: stagger(45) }, 1000);
+  }
+</script>

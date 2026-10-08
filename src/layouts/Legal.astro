@@ -1,0 +1,81 @@
+---
+import { withBase } from '../lib/url';
+import Base from './Base.astro';
+import { legalLinks } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  updated: string;
+}
+
+const { title, description, updated } = Astro.props;
+const here = Astro.url.pathname;
+---
+
+<Base title={title} description={description}>
+  <div class="container legal">
+    <aside class="legal__aside" aria-label="Документы">
+      <ul>
+        {legalLinks.map((l) => (
+          <li><a href={l.href} aria-current={l.href === here ? 'page' : undefined}>{l.label}</a></li>
+        ))}
+        <li><a href={withBase('/o-proekte/')} aria-current={here === withBase('/o-proekte/') ? 'page' : undefined}>О демо-проекте</a></li>
+      </ul>
+    </aside>
+    <article class="legal__body">
+      <header class="legal__head">
+        <h1 class="h2">{title}</h1>
+        <p class="muted small">Обновлено {updated}</p>
+        <p class="legal__demo">
+          Это документ демонстрационного сайта. Компании «Отвес» не существует, поэтому в тексте нет реквизитов и оператора
+          персональных данных. Всё, что сказано о работе самого сайта, правда: так он и устроен.
+        </p>
+      </header>
+      <div class="prose">
+        <slot />
+      </div>
+    </article>
+  </div>
+</Base>
+
+<style>
+  .legal {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    padding-block: clamp(2.5rem, 2rem + 3vw, 5rem) var(--section);
+  }
+  .legal__aside ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.25rem; position: sticky; top: calc(var(--header-h) + 24px); }
+  .legal__aside a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-left: 2px solid var(--line);
+    text-decoration: none;
+    color: var(--ink-2);
+  }
+  .legal__aside a:hover { color: var(--ink); border-left-color: var(--ink-2); }
+  .legal__aside a[aria-current='page'] { color: var(--ink); border-left-color: var(--signal); font-weight: 600; }
+  .legal__head { display: grid; gap: 0.75rem; margin-bottom: 2.5rem; max-width: 68ch; }
+  .legal__demo { padding: 1rem 1.1rem; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-s); }
+
+  .prose { max-width: 68ch; }
+  .prose :global(h2) { font-size: var(--step-2); margin: 2.5rem 0 0.75rem; }
+  .prose :global(h3) { font-size: var(--step-1); margin: 1.75rem 0 0.5rem; }
+  .prose :global(p), .prose :global(ul), .prose :global(ol), .prose :global(table) { margin-bottom: 1rem; }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.25rem; }
+  .prose :global(li + li) { margin-top: 0.35rem; }
+  .prose :global(table) { width: 100%; font-size: 0.9375rem; }
+  .prose :global(th), .prose :global(td) { text-align: left; vertical-align: top; padding: 0.6rem 0.75rem 0.6rem 0; border-bottom: 1px solid var(--line); }
+  .prose :global(th) { font-weight: 600; }
+  .prose :global(code) { font-size: 0.9em; padding: 0.1em 0.35em; border-radius: 3px; background: var(--sunken); }
+  .prose :global(.table-wrap) { overflow-x: auto; margin-bottom: 1rem; }
+
+  .legal > * { min-width: 0; }
+  @media (max-width: 860px) {
+    .legal { grid-template-columns: minmax(0, 1fr); }
+    .legal__aside ul { position: static; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .legal__aside a { border: 1.5px solid var(--line-strong); border-radius: var(--r-s); padding: 0.45rem 0.75rem; }
+    .legal__aside a[aria-current='page'] { border-color: var(--ink); }
+  }
+</style>

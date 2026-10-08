@@ -1,0 +1,165 @@
+---
+import { withBase } from '../../lib/url';
+import { Picture } from 'astro:assets';
+import Icon, { type IconName } from '../Icon.astro';
+import RemontLevels from '../service/RemontLevels.astro';
+import CeilingFinishes from '../service/CeilingFinishes.astro';
+import WindowLayers from '../service/WindowLayers.astro';
+import PriceList from '../service/PriceList.astro';
+import ElectricTiers from '../service/ElectricTiers.astro';
+import { services } from '../../data/services';
+import type { ServiceId } from '../../data/pricing';
+import { rubFrom } from '../../lib/format';
+
+const icon: Record<ServiceId, IconName> = {
+  remont: 'wall',
+  potolki: 'lamp-pendant',
+  okna: 'app-window',
+  santehnika: 'drop',
+  elektrika: 'lightning',
+};
+---
+
+<section id="uslugi" class="section services" aria-labelledby="services-title">
+  <div class="container">
+    <h2 id="services-title" class="h2">Чем занимаемся</h2>
+    <p class="lead services__lead">Выберите работу: покажем, что входит, сколько стоит и как проходит.</p>
+
+    <div class="services__layout" data-services>
+      <fieldset class="services__tabs">
+        <legend class="visually-hidden">Услуга</legend>
+        {services.map((s, i) => (
+          <label class="svc-tab">
+            <input type="radio" name="svc" value={s.id} checked={i === 0} />
+            <span class="svc-tab__title"><Icon name={icon[s.id]} />{s.title}</span>
+            <span class="svc-tab__price num">{rubFrom(s.priceFrom, s.priceUnit)}</span>
+          </label>
+        ))}
+      </fieldset>
+
+      <div class="services__panels">
+        {services.map((s) => (
+          <article class:list={['svc-panel', { 'svc-panel--wide': !s.photo }]} data-svc={s.id} aria-labelledby={`svc-${s.id}`}>
+            <div class="svc-panel__main">
+              <h3 id={`svc-${s.id}`} class="h3">{s.title}</h3>
+              <p class="svc-panel__summary">{s.lead}</p>
+              <div class="svc-panel__interactive">
+                {s.id === 'remont' && <RemontLevels uid="home-remont" />}
+                {s.id === 'potolki' && <CeilingFinishes uid="home-ceil" />}
+                {s.id === 'okna' && <WindowLayers uid="home-okna" />}
+                {s.id === 'santehnika' && (
+                  <>
+                    <PriceList items={s.prices} caption="Частые работы, цена за работу" />
+                    <p class="urgent">
+                      <Icon name="warning" />
+                      <span>Течёт прямо сейчас? Перекройте краны на трубах и оставьте заявку со словом «срочно».</span>
+                    </p>
+                  </>
+                )}
+                {s.id === 'elektrika' && <ElectricTiers uid="home-el" />}
+              </div>
+              <div class="svc-panel__actions">
+                <a class="btn btn--dark" href={withBase(`/uslugi/${s.id}/`)}>Подробнее об услуге</a>
+                <a class="btn btn--ghost" href={`#raschet-${s.id}`}><Icon name="calculator" /> Рассчитать стоимость</a>
+              </div>
+            </div>
+            {s.photo && (
+              <Picture
+                src={s.photo.src}
+                alt={s.photo.alt}
+                formats={['avif', 'webp']}
+                widths={[420, 640, 900]}
+                sizes="(max-width: 860px) 92vw, 360px"
+                class="svc-panel__photo"
+                data-focus={s.photo.focus}
+                loading="lazy"
+              />
+            )}
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .services__lead { margin-top: 1rem; }
+  .services__layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.36fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 1rem + 2vw, 3rem);
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    align-items: start;
+  }
+
+  /* Service menu: radios, so arrow keys move between services natively. */
+  .services__tabs { display: grid; position: sticky; top: calc(var(--header-h) + 24px); border-top: 1px solid var(--line); }
+  .svc-tab {
+    position: relative;
+    display: grid;
+    gap: 0.15rem;
+    padding: 1rem 0.75rem 1rem 1rem;
+    border-bottom: 1px solid var(--line);
+    border-left: 4px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .svc-tab input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .svc-tab:hover { background: color-mix(in oklab, var(--surface) 70%, transparent); }
+  .svc-tab:has(input:checked) { border-left-color: var(--signal); background: var(--surface); }
+  .svc-tab:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: -3px; }
+  .svc-tab__title { display: flex; gap: 0.55rem; align-items: center; font-weight: 600; font-size: var(--step-1); letter-spacing: -0.01em; }
+  .svc-tab__price { color: var(--ink-2); font-size: 0.9375rem; padding-left: calc(1.25em + 0.55rem); }
+
+  .svc-panel { display: none; grid-template-columns: minmax(0, 1fr) minmax(220px, 0.62fr); gap: clamp(1.5rem, 1rem + 2vw, 2.5rem); align-items: start; }
+  .svc-panel--wide { grid-template-columns: minmax(0, 1fr); }
+  .services__layout:has(input[value='remont']:checked) [data-svc='remont'],
+  .services__layout:has(input[value='potolki']:checked) [data-svc='potolki'],
+  .services__layout:has(input[value='okna']:checked) [data-svc='okna'],
+  .services__layout:has(input[value='santehnika']:checked) [data-svc='santehnika'],
+  .services__layout:has(input[value='elektrika']:checked) [data-svc='elektrika'] {
+    display: grid;
+  }
+  .svc-panel__main { display: grid; gap: 1.1rem; }
+  .svc-panel__summary { color: var(--ink-2); max-width: 62ch; }
+  .svc-panel__interactive { margin-top: 0.5rem; }
+  .svc-panel__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem; }
+  .svc-panel :global(.svc-panel__photo) { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--r-m); }
+  .svc-panel .urgent { margin-top: 1rem; }
+
+  @media (max-width: 1000px) {
+    .services__layout { grid-template-columns: 1fr; }
+    .services__tabs {
+      position: static;
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      border: 0;
+      padding-bottom: 0.25rem;
+      scrollbar-width: thin;
+    }
+    .svc-tab { flex: none; border: 1.5px solid var(--line-strong); border-radius: var(--r-s); padding: 0.6rem 0.9rem; }
+    .svc-tab:has(input:checked) { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .svc-tab:has(input:focus-visible) { outline-offset: 2px; }
+    .svc-tab__title { font-size: 1rem; }
+    .svc-tab__price { display: none; }
+  }
+  @media (max-width: 760px) {
+    .svc-panel { grid-template-columns: 1fr; }
+    .svc-panel :global(.svc-panel__photo) { order: -1; aspect-ratio: 16 / 10; }
+    .svc-panel__actions .btn { flex: 1 1 100%; }
+  }
+</style>
+
+<script>
+  import { reveal } from '../../lib/motion';
+
+  const layout = document.querySelector<HTMLElement>('[data-services]');
+  layout?.addEventListener('change', (e) => {
+    const input = e.target as HTMLInputElement;
+    if (input.name !== 'svc') return;
+    reveal(layout.querySelector(`[data-svc="${input.value}"]`), 12);
+    // Keep the chosen tab visible in the horizontal strip on phones.
+    input.closest('label')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
+</script>

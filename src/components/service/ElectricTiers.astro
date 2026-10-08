@@ -1,0 +1,75 @@
+---
+import Icon from '../Icon.astro';
+import { electricTiers } from '../../data/services';
+import { rubFrom } from '../../lib/format';
+
+interface Props {
+  uid: string;
+}
+const { uid } = Astro.props;
+---
+
+<div class="tiers">
+  <fieldset>
+    <legend class="tiers__legend">Какой объём работ?</legend>
+    <div class="tiers__picker">
+      {electricTiers.map((t, i) => (
+        <label class="chip">
+          <input type="radio" name={`${uid}-tier`} value={t.id} checked={i === 0} />
+          <span>{t.title}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+
+  <div class="tiers__body">
+    <svg class="tiers__scope" viewBox="0 0 220 140" role="img" aria-label="Схема: точка, комната или вся квартира">
+      <rect x="6" y="6" width="208" height="128" class="tiers__flat" />
+      <rect x="6" y="6" width="120" height="82" class="tiers__room" />
+      <path d="M6 88H214M126 6V88M70 88V134M160 88V134" class="tiers__walls" />
+      <circle cx="96" cy="80" r="7" class="tiers__point" />
+    </svg>
+    <div>
+      {electricTiers.map((t) => (
+        <div class="tiers__panel" data-tier={t.id}>
+          <p>{t.text}</p>
+          <p class="tiers__price num">{rubFrom(t.from, t.unit || undefined)}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <p class="urgent">
+    <Icon name="warning" />
+    <span>Пахнет горелым, искрит или розетка горячая? Отключите автомат этой линии в щитке и не включайте до осмотра.</span>
+  </p>
+</div>
+
+<style>
+  .tiers { display: grid; gap: 1.1rem; }
+  .tiers__legend { font-weight: 600; margin-bottom: 0.6rem; }
+  .tiers__picker { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .tiers__body { display: grid; grid-template-columns: 180px 1fr; gap: 1.25rem; align-items: center; }
+  .tiers__scope { width: 100%; background: var(--sunken); border-radius: var(--r-s); }
+  .tiers__flat, .tiers__room { fill: transparent; stroke: none; transition: fill 0.3s; }
+  .tiers__walls { fill: none; stroke: var(--ink); stroke-width: 3; }
+  .tiers__flat { stroke: var(--ink); stroke-width: 5; }
+  .tiers__point { fill: var(--surface); stroke: var(--ink); stroke-width: 2; transition: fill 0.3s; }
+  .tiers:has(input[value='point']:checked) .tiers__point { fill: var(--signal); }
+  .tiers:has(input[value='room']:checked) .tiers__room { fill: var(--signal-soft); }
+  .tiers:has(input[value='room']:checked) .tiers__point,
+  .tiers:has(input[value='flat']:checked) .tiers__point { fill: var(--signal); }
+  .tiers:has(input[value='flat']:checked) .tiers__flat { fill: var(--signal-soft); }
+  .tiers__panel { display: none; }
+  .tiers:has(input[value='point']:checked) [data-tier='point'],
+  .tiers:has(input[value='room']:checked) [data-tier='room'],
+  .tiers:has(input[value='flat']:checked) [data-tier='flat'] {
+    display: block;
+  }
+  .tiers__price { margin-top: 0.5rem; font-weight: 650; font-size: var(--step-1); }
+  .urgent :global(.icon) { margin-top: 0.15em; }
+  @media (max-width: 520px) {
+    .tiers__body { grid-template-columns: 1fr; }
+    .tiers__scope { max-width: 220px; }
+  }
+</style>

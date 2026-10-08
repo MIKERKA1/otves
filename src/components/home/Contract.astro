@@ -1,0 +1,92 @@
+---
+import { Picture } from 'astro:assets';
+import { clauses } from '../../data/content';
+import plans from '../../assets/photos/plans-on-wall.jpg';
+import protectedStairs from '../../assets/photos/stairs-protected.jpg';
+---
+
+<section id="dogovor" class="section contract" aria-labelledby="contract-title">
+  <div class="container contract__grid">
+    <div class="contract__intro">
+      <h2 id="contract-title" class="h2">Что записываем в договор</h2>
+      <p class="lead contract__lead">Обещание на сайте ничего не стоит, если его нет в договоре. Вот пункты, которые защищают вас, и что они значат простыми словами.</p>
+      <p class="contract__send">Договор присылаем до осмотра, чтобы вы прочитали его без спешки.</p>
+      <div class="contract__photos">
+        <figure>
+          <Picture src={plans} alt="Чертежи и смета приклеены малярным скотчем к стене ремонтируемой ванной" formats={['avif', 'webp']} widths={[360, 560, 800]} sizes="(max-width: 860px) 45vw, 260px" loading="lazy" />
+          <figcaption>Смета и план висят прямо на объекте</figcaption>
+        </figure>
+        <figure>
+          <Picture src={protectedStairs} alt="Лестница и пол укрыты защитным полотном на время ремонта" formats={['avif', 'webp']} widths={[360, 560, 800]} sizes="(max-width: 860px) 45vw, 260px" loading="lazy" />
+          <figcaption>Лестницу укрыли на всё время работ</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="doc">
+      <p class="doc__head" aria-hidden="true">Договор подряда, раздел 4. Фрагмент</p>
+      <ol class="doc__list">
+        {clauses.map((c, i) => (
+          <li class="clause">
+            <p class="clause__text"><span class="clause__n">4.{i + 1}.</span> {c.clause}</p>
+            <p class="clause__plain"><strong>Простыми словами:</strong> {c.plain}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contract__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    align-items: start;
+  }
+  .contract__lead { margin-top: 1rem; }
+  .contract__send { margin-top: 1rem; font-weight: 550; }
+  .contract__photos { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 2rem; }
+  .contract__photos :global(img) { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: var(--r-m); }
+  .contract__photos figcaption { margin-top: 0.4rem; font-size: var(--step--1); color: var(--ink-2); }
+
+  /* A sheet of the actual contract, with the plain-language note in the margin. */
+  .doc {
+    padding: clamp(1.25rem, 1rem + 2vw, 2.5rem);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-m);
+  }
+  .doc__head { font-size: var(--step--1); color: var(--ink-2); padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+  .doc__list { list-style: none; padding: 0; margin: 0; display: grid; }
+  .clause {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .clause:last-child { border-bottom: 0; padding-bottom: 0; }
+  .clause__text { font-size: 0.9375rem; line-height: 1.6; color: var(--ink-2); }
+  .clause__n { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .clause__plain { font-weight: 500; }
+  /* The plain-language note is labelled like a strip of masking tape on the contract margin. */
+  .clause__plain strong {
+    display: block;
+    width: fit-content;
+    margin-bottom: 0.35rem;
+    padding: 0.1rem 0.45rem;
+    background: var(--signal);
+    color: var(--on-signal);
+    font-size: var(--step--1);
+    font-weight: 600;
+    transform: rotate(-1.5deg);
+  }
+
+  @media (max-width: 960px) {
+    .contract__grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .clause { grid-template-columns: 1fr; gap: 0.6rem; }
+  }
+</style>

@@ -1,0 +1,223 @@
+---
+import { withBase } from '../../lib/url';
+import { Picture } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import RemontLevels from '../../components/service/RemontLevels.astro';
+import CeilingFinishes from '../../components/service/CeilingFinishes.astro';
+import WindowLayers from '../../components/service/WindowLayers.astro';
+import ElectricTiers from '../../components/service/ElectricTiers.astro';
+import PriceList from '../../components/service/PriceList.astro';
+import Faq from '../../components/Faq.astro';
+import RequestForm from '../../components/RequestForm.astro';
+import MobileBar from '../../components/MobileBar.astro';
+import { serviceById, services } from '../../data/services';
+import { projects } from '../../data/projects';
+import type { ServiceId } from '../../data/pricing';
+import { rubFrom, rubRange } from '../../lib/format';
+
+export function getStaticPaths() {
+  return services.map((s) => ({ params: { id: s.id } }));
+}
+
+const s = serviceById(Astro.params.id as ServiceId);
+const related = projects.filter((p) => p.services.includes(s.id)).slice(0, 3);
+const others = services.filter((x) => x.id !== s.id);
+const optionsTitle: Partial<Record<ServiceId, string>> = {
+  remont: 'Какой ремонт выбрать',
+  okna: 'Почему окно не должно дуть',
+  elektrika: 'Какой объём работ',
+};
+---
+
+<Base title={s.title} description={s.metaDescription}>
+  <nav class="container crumbs" aria-label="Навигационная цепочка">
+    <ol>
+      <li><a href={withBase('/')}>Главная</a></li>
+      <li><a href={withBase('/#uslugi')}>Услуги</a></li>
+      <li><span aria-current="page">{s.title}</span></li>
+    </ol>
+  </nav>
+
+  <section class="container svc-hero" data-hero aria-labelledby="svc-title">
+    <div class="svc-hero__copy">
+      <h1 id="svc-title" class="display svc-hero__title">{s.title}</h1>
+      <p class="lead svc-hero__lead">{s.lead}</p>
+      <p class="svc-hero__price num">{rubFrom(s.priceFrom, s.priceUnit)} <span>за работу</span></p>
+      <div class="svc-hero__ctas">
+        <a class="btn btn--primary" href="#zayavka">Оставить заявку</a>
+        <a class="btn btn--ghost" href={withBase(`/#raschet-${s.id}`)}><Icon name="calculator" /> Рассчитать стоимость</a>
+      </div>
+    </div>
+    <div class="svc-hero__visual">
+      {s.photo ? (
+        <Picture src={s.photo.src} alt={s.photo.alt} formats={['avif', 'webp']} widths={[480, 720, 1000]} sizes="(max-width: 900px) 92vw, 45vw" class="svc-hero__img" data-focus={s.photo.focus} loading="eager" fetchpriority="high" />
+      ) : (
+        <div class="svc-hero__panel"><CeilingFinishes uid="page-ceil" /></div>
+      )}
+    </div>
+  </section>
+
+  <section class="section section--surface" aria-labelledby="works-title">
+    <div class="container">
+      <h2 id="works-title" class="h2">Что делаем</h2>
+      <div class="works-groups">
+        {s.works.map((g) => (
+          <div class="works-group">
+            <h3 class="works-group__title">{g.title}</h3>
+            <ul>{g.items.map((i) => <li><Icon name="check" />{i}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {optionsTitle[s.id] && (
+    <section class="section" aria-labelledby="options-title">
+      <div class="container narrow">
+        <h2 id="options-title" class="h2">{optionsTitle[s.id]}</h2>
+        <div class="options">
+          {s.id === 'remont' && <RemontLevels uid="page-remont" />}
+          {s.id === 'okna' && <WindowLayers uid="page-okna" />}
+          {s.id === 'elektrika' && <ElectricTiers uid="page-el" />}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class:list={['section', { 'section--surface': !!optionsTitle[s.id] }]} aria-labelledby="steps-title">
+    <div class="container">
+      <h2 id="steps-title" class="h2">Как проходит работа</h2>
+      <ol class="steps">
+        {s.steps.map((st, i) => (
+          <li class="step">
+            <span class="step__n" aria-hidden="true">{i + 1}</span>
+            <h3 class="step__title">{st.title}</h3>
+            <p class="step__text">{st.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class:list={['section', { 'section--surface': !optionsTitle[s.id] }]} aria-labelledby="prices-title">
+    <div class="container prices-layout">
+      <div>
+        <h2 id="prices-title" class="h2">Сколько стоит</h2>
+        <p class="prices-layout__note">Цены за работу, материалы считаются отдельно. Точную сумму назовём после осмотра и запишем в договор.</p>
+        <a class="btn btn--ghost" href={withBase(`/#raschet-${s.id}`)}><Icon name="calculator" /> Рассчитать стоимость</a>
+      </div>
+      <PriceList items={s.prices} />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="prepare-title">
+    <div class="container prepare">
+      <h2 id="prepare-title" class="h2">Что подготовить к приезду мастера</h2>
+      <ul class="prepare__list">
+        {s.prepare.map((p) => <li><Icon name="check-circle" /><span>{p}</span></li>)}
+      </ul>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="section section--surface" aria-labelledby="related-title">
+      <div class="container">
+        <h2 id="related-title" class="h2">Похожие работы</h2>
+        <p class="demo-note related__note"><Icon name="info" /><span>Демо-кейсы: фото настоящего ремонта с Unsplash, цены и сроки придуманы.</span></p>
+        <ul class="related">
+          {related.map((p) => (
+            <li>
+              <Picture src={p.cover.src} alt={p.cover.alt} formats={['avif', 'webp']} widths={[400, 640]} sizes="(max-width: 760px) 92vw, 30vw" loading="lazy" />
+              <h3 class="related__title">{p.title}</h3>
+              <p class="related__meta num">{p.duration}, {rubRange(p.cost)} за работу</p>
+            </li>
+          ))}
+        </ul>
+        <a class="related__all" href={withBase('/#raboty')}>Все работы с подробностями</a>
+      </div>
+    </section>
+  )}
+
+  <Faq items={s.faq} title={`Вопросы: ${s.short.toLowerCase()}`} />
+  <RequestForm service={s.id} title={`Заявка: ${s.title.toLowerCase()}`} />
+
+  <nav class="section section--surface" aria-labelledby="others-title">
+    <div class="container">
+      <h2 id="others-title" class="h3">Другие работы</h2>
+      <ul class="others">
+        {others.map((o) => <li><a href={withBase(`/uslugi/${o.id}/`)}><span>{o.title}</span><span class="num">{rubFrom(o.priceFrom, o.priceUnit)}</span></a></li>)}
+      </ul>
+    </div>
+  </nav>
+
+  <MobileBar slot="after" />
+</Base>
+
+<style>
+  .crumbs { padding-top: 1.25rem; font-size: var(--step--1); }
+  .crumbs ol { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; color: var(--ink-2); }
+  .crumbs li + li::before { content: '/'; margin-right: 0.4rem; color: var(--line-strong); }
+  .crumbs a { color: var(--ink-2); }
+
+  .svc-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    align-items: center;
+    padding-block: clamp(1.5rem, 1rem + 2vw, 3rem) var(--section);
+  }
+  .svc-hero__title { font-size: clamp(2.4rem, 1.5rem + 3.5vw, 4.25rem); }
+  .svc-hero__lead { margin-top: 1.25rem; max-width: 50ch; }
+  .svc-hero__price { margin-top: 1.5rem; font-size: var(--step-2); font-weight: 700; letter-spacing: -0.02em; }
+  .svc-hero__price span { font-size: 1rem; font-weight: 400; color: var(--ink-2); letter-spacing: 0; }
+  .svc-hero__ctas { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+  .svc-hero :global(.svc-hero__img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-m); }
+  .svc-hero__panel { padding: clamp(1rem, 0.75rem + 1vw, 1.5rem); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-m); }
+
+  .works-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; margin-top: 2rem; }
+  .works-group__title { font-size: var(--step-1); letter-spacing: -0.01em; font-variation-settings: normal; padding-bottom: 0.75rem; border-bottom: 2px solid var(--signal); }
+  .works-group ul { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 0.6rem; }
+  .works-group li { display: flex; gap: 0.6rem; align-items: flex-start; }
+  .works-group li :global(.icon) { color: var(--ok); margin-top: 0.2em; }
+
+  .narrow { max-width: 860px; }
+  .options { margin-top: 2rem; }
+
+  .steps { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem 2rem; counter-reset: step; }
+  .step { display: grid; gap: 0.4rem; align-content: start; padding-top: 1rem; border-top: 1px solid var(--line); }
+  .step__n { font-size: var(--step-3); font-weight: 700; font-variation-settings: 'SHRP' 100; color: var(--ink); line-height: 1; }
+  .step__title { font-size: var(--step-1); letter-spacing: -0.01em; font-variation-settings: normal; }
+  .step__text { color: var(--ink-2); font-size: 0.9375rem; }
+
+  .prices-layout { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2rem, 1rem + 4vw, 5rem); align-items: start; }
+  .prices-layout__note { margin: 1rem 0 1.5rem; color: var(--ink-2); max-width: 40ch; }
+
+  .prepare { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2rem, 1rem + 4vw, 5rem); align-items: start; }
+  .prepare__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.9rem; }
+  .prepare__list li { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.75rem; font-size: var(--step-1); line-height: 1.4; }
+  .prepare__list :global(.icon) { width: 1.5rem; height: 1.5rem; color: var(--ok); }
+
+  .related__note { margin-top: 0.75rem; }
+  .related { list-style: none; padding: 0; margin: 1.75rem 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+  .related :global(img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-m); }
+  .related__title { margin-top: 0.75rem; font-size: var(--step-1); letter-spacing: -0.01em; font-variation-settings: normal; }
+  .related__meta { color: var(--ink-2); font-size: 0.9375rem; margin-top: 0.2rem; }
+  .related__all { display: inline-block; margin-top: 1.5rem; font-weight: 550; }
+
+  .others { list-style: none; padding: 0; margin: 1.25rem 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; }
+  .others a { display: grid; gap: 0.2rem; padding: 1rem; border: 1.5px solid var(--line-strong); border-radius: var(--r-s); text-decoration: none; font-weight: 600; transition: border-color 0.15s; }
+  .others a:hover { border-color: var(--ink); }
+  .others a span:last-child { font-weight: 400; color: var(--ink-2); font-size: 0.9375rem; }
+
+  @media (max-width: 900px) {
+    .svc-hero, .prices-layout, .prepare { grid-template-columns: 1fr; }
+    .works-groups { grid-template-columns: 1fr; gap: 1.5rem; }
+    .related { grid-template-columns: 1fr; }
+    .others { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .others { grid-template-columns: 1fr; }
+    .svc-hero__ctas .btn { flex: 1 1 100%; }
+  }
+</style>

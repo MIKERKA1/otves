@@ -1,0 +1,70 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../data/site';
+---
+
+<div class="mbar" data-mbar hidden>
+  <a class="btn btn--ghost" href={site.phone.href}><Icon name="phone" /> Позвонить</a>
+  <a class="btn btn--primary" href="#zayavka">Оставить заявку</a>
+</div>
+
+<style>
+  .mbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-bar);
+    display: none;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 0.5rem;
+    padding: 0.6rem var(--gutter) calc(0.6rem + env(safe-area-inset-bottom));
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  .mbar .btn { min-height: 48px; }
+  @media (max-width: 720px) {
+    .mbar { display: grid; }
+    :global(.consent-pending) .mbar { display: none; }
+    :global(body:has(.mbar:not([hidden])) .footer) { padding-bottom: 6rem; }
+    /* Focused fields are scrolled clear of the bar instead of hiding under it. */
+    :global(html:has(.mbar:not([hidden]))) { scroll-padding-bottom: 5.5rem; }
+  }
+</style>
+
+<script>
+  import { inView } from 'motion';
+  import { animate } from 'motion/mini';
+  import { EASE, prefersReducedMotion } from '../lib/motion';
+
+  // Shown once the hero is gone; hidden next to the form and the calculator, which have their own buttons.
+  const bar = document.querySelector<HTMLElement>('[data-mbar]');
+  const hero = document.querySelector('[data-hero]');
+  if (bar && hero) {
+    const state = { pastHero: false, covered: new Set<Element>() };
+    const update = () => {
+      const show = state.pastHero && state.covered.size === 0;
+      if (show === !bar.hidden) return;
+      bar.hidden = !show;
+      if (show && !prefersReducedMotion()) animate(bar, { transform: ['translateY(100%)', 'translateY(0)'] }, { duration: 0.3, ease: EASE });
+    };
+    inView(hero, () => {
+      state.pastHero = false;
+      update();
+      return () => {
+        state.pastHero = true;
+        update();
+      };
+    });
+    document.querySelectorAll('#zayavka, #raschet').forEach((el) =>
+      inView(el, () => {
+        state.covered.add(el);
+        update();
+        return () => {
+          state.covered.delete(el);
+          update();
+        };
+      }, { amount: 0.15 }),
+    );
+  }
+</script>

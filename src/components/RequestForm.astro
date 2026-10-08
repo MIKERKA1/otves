@@ -1,0 +1,491 @@
+---
+import { withBase } from '../lib/url';
+import Icon from './Icon.astro';
+import { services } from '../data/services';
+import type { ServiceId } from '../data/pricing';
+import { ACCEPT } from '../lib/files';
+import { site } from '../data/site';
+
+interface Props {
+  service?: ServiceId;
+  title?: string;
+}
+const { service, title = 'Расскажите, что нужно сделать' } = Astro.props;
+const options: { id: ServiceId | 'unknown'; label: string }[] = [
+  ...services.map((s) => ({ id: s.id, label: s.short })),
+  { id: 'unknown', label: 'Пока не знаю' },
+];
+---
+
+<section id="zayavka" class="section request" aria-labelledby="request-title">
+  <div class="container request__grid">
+    <div class="request__top">
+      <h2 id="request-title" class="h2" tabindex="-1">{title}</h2>
+      <p class="lead request__lead">Перезвоним, уточним детали и договоримся об осмотре. Обычно в течение 15 минут, {site.hours.toLowerCase()}.</p>
+    </div>
+    <div class="request__aside">
+      <ol class="request__next">
+        <li><strong>Звонок.</strong> Прораб задаст пару вопросов и назовёт примерную цену.</li>
+        <li><strong>Осмотр.</strong> Приедем в удобное время, в пределах города бесплатно.</li>
+        <li><strong>Смета.</strong> Пришлём по позициям. Решение за вами, без звонков с уговорами.</li>
+      </ol>
+      <div class="request__privacy">
+        <h3 class="request__privacy-title"><Icon name="info" /> Что будет с вашими данными</h3>
+        <p>Имя и телефон нужны, чтобы перезвонить. Описание и фото нужны, чтобы мастер понял задачу до приезда. Больше мы ничего не спрашиваем.</p>
+        <p><strong>В этом демо</strong> заявка не отправляется и нигде не сохраняется: данные живут только в открытой вкладке, пока вы её не закроете или не очистите форму.</p>
+        <p><a href={withBase('/privacy/')}>Политика конфиденциальности</a> · <a href={withBase('/data/')}>Как удалить свои данные</a></p>
+      </div>
+    </div>
+
+    <div class="request__card">
+      <form class="rform" data-request novalidate>
+        <div class="rform__errors" role="alert" tabindex="-1" data-errors hidden>
+          <p>Чтобы отправить заявку, исправьте:</p>
+          <ul data-errors-list></ul>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="r-name">Как к вам обращаться</label>
+          <input class="input" id="r-name" name="name" type="text" autocomplete="name" maxlength="60" required aria-describedby="r-name-error" />
+          <p class="field__error" id="r-name-error" data-error-for="name"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="r-phone">Телефон</label>
+          <input class="input num" id="r-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="+7 900 000-00-00" aria-describedby="r-phone-hint r-phone-error" />
+          <p class="field__hint" id="r-phone-hint">Российский номер, можно начать с 8</p>
+          <p class="field__error" id="r-phone-error" data-error-for="phone"></p>
+        </div>
+
+        <fieldset class="field" aria-describedby="r-service-error">
+          <legend class="field__label">Что нужно сделать</legend>
+          <div class="rform__chips">
+            {options.map((o) => (
+              <label class="chip">
+                <input type="radio" name="service" value={o.id} checked={o.id === service} required />
+                <span>{o.label}</span>
+              </label>
+            ))}
+          </div>
+          <p class="field__error" id="r-service-error" data-error-for="service"></p>
+        </fieldset>
+
+        <div class="field">
+          <label class="field__label" for="r-desc">Что случилось или что хотите сделать</label>
+          <textarea class="input" id="r-desc" name="description" maxlength="1000" rows="4" autocomplete="off" aria-describedby="r-desc-hint r-desc-count"></textarea>
+          <p class="field__hint" id="r-desc-hint">Например: течёт смеситель на кухне, хочу заменить. Можно не заполнять, но мастеру так проще.</p>
+          <p class="field__hint rform__count num" id="r-desc-count" data-count>0 из 1000</p>
+        </div>
+
+        <div class="field">
+          <span class="field__label" id="r-photos-label">Фото, если есть</span>
+          <p class="field__hint" id="r-photos-hint">До 3 фото JPG, PNG или WebP, каждое до 10 МБ. Перед отправкой удалим из них метаданные, в том числе геолокацию.</p>
+          <label class="dropzone" data-dropzone>
+            <Icon name="camera" />
+            <span>Добавить фото <span class="dropzone__or">или перетащите сюда</span></span>
+            <input class="visually-hidden" type="file" id="r-photos" name="photos" accept={ACCEPT} multiple aria-labelledby="r-photos-label" aria-describedby="r-photos-hint r-photos-error" data-photos-input />
+          </label>
+          <p class="field__error" id="r-photos-error" data-error-for="photos"></p>
+          <ul class="photos" data-photos aria-label="Добавленные фото"></ul>
+        </div>
+
+        <fieldset class="field">
+          <legend class="field__label">Как удобнее связаться</legend>
+          <div class="rform__chips">
+            <label class="chip"><input type="radio" name="contact" value="call" checked /><span>Позвонить</span></label>
+            <label class="chip"><input type="radio" name="contact" value="messenger" /><span>Написать в мессенджер</span></label>
+          </div>
+        </fieldset>
+
+        <div class="field rform__consent">
+          <label class="check">
+            <input type="checkbox" name="consent" id="r-consent" required aria-describedby="r-consent-error" />
+            <span>Даю согласие на обработку имени, телефона, описания и фото, чтобы со мной связались по этой заявке. <a href={withBase('/privacy/')}>Политика конфиденциальности</a></span>
+          </label>
+          <p class="field__error" id="r-consent-error" data-error-for="consent"></p>
+          <details class="rform__consent-text">
+            <summary>Полный текст согласия</summary>
+            <div>
+              <p>Я даю согласие на обработку моих персональных данных: имени, номера телефона, описания задачи и приложенных фотографий.</p>
+              <p>Цель: связаться со мной по этой заявке, договориться об осмотре и рассчитать стоимость работ. Действия с данными: сбор, запись, хранение, использование и удаление.</p>
+              <p>Срок: до завершения работ по заявке, но не дольше 12 месяцев, или до отзыва согласия. Отозвать согласие можно в любой момент письмом на {site.email}.</p>
+              <p>Оператор: в демо-версии отсутствует. Сайт демонстрационный, данные из формы никуда не передаются и не сохраняются.</p>
+            </div>
+          </details>
+        </div>
+
+        <div class="rform__submit">
+          <button type="submit" class="btn btn--primary" data-submit>Отправить заявку</button>
+          <p class="demo-note" id="r-demo-note"><Icon name="info" /><span>Демо-сайт: заявка никуда не уйдёт. Покажем, что получила бы компания.</span></p>
+        </div>
+      </form>
+
+      <div class="rdone" data-done hidden>
+        <p class="rdone__icon"><Icon name="check-circle" /></p>
+        <h3 class="h3" tabindex="-1" data-done-title>Заявка собрана</h3>
+        <p>Это демо, поэтому заявка никуда не ушла. Вот что получила бы компания:</p>
+        <dl class="rdone__summary" data-summary></dl>
+        <p class="small muted">Данные лежат только в памяти этой вкладки. Нажмите «Очистить заявку» или закройте вкладку, и они исчезнут.</p>
+        <button type="button" class="btn btn--dark" data-clear><Icon name="trash" /> Очистить заявку</button>
+      </div>
+    </div>
+    <p class="visually-hidden" role="status" data-request-status></p>
+  </div>
+</section>
+
+<style>
+  /* DOM order is heading, notes, form, and both layouts keep it, so Tab order always matches what is seen. */
+  .request__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-areas: 'top card' 'aside card';
+    grid-template-rows: auto 1fr;
+    gap: 0 clamp(2rem, 1rem + 4vw, 5rem);
+    align-items: start;
+  }
+  .request__top { grid-area: top; }
+  .request__aside { grid-area: aside; }
+  .request__card { grid-area: card; }
+  .request__lead { margin-top: 1rem; }
+  .request__next { margin: 2rem 0 0; padding-left: 1.25rem; display: grid; gap: 0.6rem; }
+  .request__next li::marker { font-weight: 700; }
+  .request__privacy { margin-top: 2rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: var(--r-m); display: grid; gap: 0.6rem; font-size: 0.9375rem; }
+  .request__privacy-title { display: flex; gap: 0.5rem; align-items: center; font-size: 1.0625rem; font-variation-settings: normal; letter-spacing: 0; }
+  .request__privacy p { color: var(--ink-2); }
+  .request__privacy strong, .request__privacy a { color: var(--ink); }
+
+  .request__card { padding: clamp(1.25rem, 1rem + 2vw, 2.5rem); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-m); }
+  .rform { display: grid; gap: 1.4rem; }
+  .rform__chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .rform__count { justify-self: end; margin-top: -0.25rem; }
+  .rform__errors { padding: 1rem 1.1rem; border: 1.5px solid var(--error); background: color-mix(in oklab, var(--error) 8%, var(--surface)); border-radius: var(--r-s); outline: none; }
+  .rform__errors p { font-weight: 600; }
+  .rform__errors ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+  .rform__errors a { color: var(--error); font-weight: 500; }
+  fieldset.field { gap: 0.6rem; }
+
+  .dropzone {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 64px;
+    padding: 0.9rem 1rem;
+    border: 1.5px dashed var(--line-strong);
+    border-radius: var(--r-s);
+    background: var(--bg);
+    font-weight: 550;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+  .dropzone :global(.icon) { width: 1.5em; height: 1.5em; }
+  .dropzone:hover, .dropzone.is-over { border-color: var(--ink); border-style: solid; }
+  .dropzone.is-over { background: var(--signal-soft); }
+  .dropzone:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .dropzone__or { font-weight: 400; color: var(--ink-2); }
+  .photos { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+  .photos:empty { display: none; }
+  .photos :global(li) { display: grid; grid-template-columns: 56px 1fr auto; gap: 0.75rem; align-items: center; padding: 0.4rem; border: 1px solid var(--line); border-radius: var(--r-s); }
+  .photos :global(img) { width: 56px; height: 56px; object-fit: cover; border-radius: 3px; }
+  .photos :global(.photos__name) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9375rem; }
+  .photos :global(.photos__size) { display: block; color: var(--ink-2); font-size: var(--step--1); }
+  .photos :global(button) { width: 44px; height: 44px; display: grid; place-items: center; border: 1.5px solid var(--line-strong); border-radius: var(--r-s); background: transparent; cursor: pointer; }
+
+  .rform__consent { gap: 0.5rem; }
+  .rform__consent-text summary { display: inline-flex; min-height: 44px; align-items: center; color: var(--ink-2); text-decoration: underline; text-underline-offset: 0.2em; font-size: 0.9375rem; padding-left: calc(22px + 0.75rem); }
+  .rform__consent-text div { display: grid; gap: 0.5rem; margin-top: 0.25rem; padding: 0.9rem 1rem; background: var(--bg); border-radius: var(--r-s); font-size: var(--step--1); color: var(--ink-2); }
+  .rform__submit { display: grid; gap: 0.75rem; justify-items: start; }
+  .rform__submit .btn { min-width: 220px; }
+  .rform__submit .btn[aria-busy='true'] { cursor: progress; }
+
+  .rdone { display: grid; gap: 0.9rem; }
+  .rdone__icon :global(.icon) { width: 2.5rem; height: 2.5rem; color: var(--ok); }
+  .rdone h3 { outline: none; }
+  .rdone__summary { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1.25rem; padding: 1rem; background: var(--bg); border-radius: var(--r-s); }
+  .rdone__summary :global(dt) { color: var(--ink-2); }
+  .rdone__summary :global(dd) { font-weight: 500; overflow-wrap: anywhere; white-space: pre-line; }
+  .rdone .btn { justify-self: start; }
+
+  @media (max-width: 960px) {
+    .request__grid { grid-template-columns: 1fr; grid-template-areas: 'top' 'aside' 'card'; gap: 1.5rem; }
+    .request__next { margin-top: 0.5rem; }
+  }
+  @media (max-width: 520px) {
+    .rdone__summary { grid-template-columns: 1fr; gap: 0.15rem; }
+    .rdone__summary :global(dd) { margin-bottom: 0.5rem; }
+    .rform__submit .btn { width: 100%; }
+  }
+</style>
+
+<script>
+  import { animate } from 'motion/mini';
+  import { EASE, focusQuietly, prefersReducedMotion, reveal } from '../lib/motion';
+  import { PREFILL_EVENT, type Prefill } from '../lib/prefill';
+  import { MAX_FILES, checkFile, stripMetadata } from '../lib/files';
+  import { formatPhone, maskPhone, normalizePhone } from '../lib/phone';
+  import { track } from '../lib/consent';
+
+  const form = document.querySelector<HTMLFormElement>('[data-request]');
+  const section = document.getElementById('zayavka');
+
+  if (form && section) {
+    const $ = <T extends Element>(sel: string) => section.querySelector<T>(sel)!;
+    const errorsBox = $<HTMLElement>('[data-errors]');
+    const errorsList = $<HTMLUListElement>('[data-errors-list]');
+    const status = $<HTMLElement>('[data-request-status]');
+    const done = $<HTMLElement>('[data-done]');
+    const summary = $<HTMLElement>('[data-summary]');
+    const submit = $<HTMLButtonElement>('[data-submit]');
+    const photosInput = $<HTMLInputElement>('[data-photos-input]');
+    const photosList = $<HTMLUListElement>('[data-photos]');
+    const dropzone = $<HTMLElement>('[data-dropzone]');
+    const desc = form.elements.namedItem('description') as HTMLTextAreaElement;
+    const name = form.elements.namedItem('name') as HTMLInputElement;
+    const phone = form.elements.namedItem('phone') as HTMLInputElement;
+    const consent = form.elements.namedItem('consent') as HTMLInputElement;
+    const count = $<HTMLElement>('[data-count]');
+
+    // Photos live only in this array and as blob: URLs for the previews.
+    type Photo = { file: File; url: string };
+    let photos: Photo[] = [];
+    let attempted = false;
+
+    const announce = (text: string) => {
+      status.textContent = '';
+      requestAnimationFrame(() => (status.textContent = text));
+    };
+
+    const serviceLabel = () => {
+      const checked = form.querySelector<HTMLInputElement>('input[name="service"]:checked');
+      return checked ? (checked.nextElementSibling?.textContent ?? '') : '';
+    };
+
+    /* ---------- validation ---------- */
+
+    type Problem = { field: string; target: HTMLElement; message: string };
+    const validate = (): Problem[] => {
+      const problems: Problem[] = [];
+      const n = name.value.trim();
+      if (!n) problems.push({ field: 'name', target: name, message: 'Напишите, как к вам обращаться' });
+      else if (n.length < 2) problems.push({ field: 'name', target: name, message: 'Имя должно быть хотя бы из двух букв' });
+      if (!phone.value.trim()) problems.push({ field: 'phone', target: phone, message: 'Нужен телефон, чтобы перезвонить' });
+      else if (!normalizePhone(phone.value)) problems.push({ field: 'phone', target: phone, message: 'Проверьте номер: после +7 должно быть 10 цифр' });
+      if (!form.querySelector('input[name="service"]:checked')) {
+        problems.push({ field: 'service', target: form.querySelector<HTMLInputElement>('input[name="service"]')!, message: 'Выберите, что нужно сделать, или «Пока не знаю»' });
+      }
+      if (!consent.checked) problems.push({ field: 'consent', target: consent, message: 'Отметьте согласие: без него мы не можем принять заявку' });
+      return problems;
+    };
+
+    const showProblems = (problems: Problem[], summaryToo: boolean) => {
+      form.querySelectorAll<HTMLElement>('[data-error-for]').forEach((el) => {
+        if (el.dataset.errorFor !== 'photos') el.textContent = '';
+      });
+      form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+      for (const p of problems) {
+        form.querySelector<HTMLElement>(`[data-error-for="${p.field}"]`)!.textContent = p.message;
+        if (p.field === 'service') form.querySelectorAll('input[name="service"]').forEach((r) => r.setAttribute('aria-invalid', 'true'));
+        else p.target.setAttribute('aria-invalid', 'true');
+      }
+      if (!summaryToo) return;
+      errorsList.replaceChildren(
+        ...problems.map((p) => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `#${p.target.id || 'r-name'}`;
+          a.textContent = p.message;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            p.target.focus();
+          });
+          li.append(a);
+          return li;
+        }),
+      );
+      errorsBox.hidden = problems.length === 0;
+    };
+
+    form.addEventListener('focusout', () => {
+      if (attempted) showProblems(validate(), false);
+    });
+
+    // Leaving the page loses a half-filled request for good (nothing is saved), so the browser asks first.
+    const warnOnLeave = (e: BeforeUnloadEvent) => e.preventDefault();
+    const isDirty = () => !!(name.value.trim() || phone.value.trim() || desc.value.trim() || photos.length);
+    form.addEventListener('input', () => {
+      if (isDirty()) addEventListener('beforeunload', warnOnLeave);
+      else removeEventListener('beforeunload', warnOnLeave);
+    });
+
+    phone.addEventListener('blur', () => {
+      const digits = normalizePhone(phone.value);
+      if (digits) phone.value = formatPhone(digits);
+    });
+
+    desc.addEventListener('input', () => (count.textContent = `${desc.value.length} из 1000`));
+
+    /* ---------- photos ---------- */
+
+    const photoError = $<HTMLElement>('[data-error-for="photos"]');
+    const renderPhotos = () => {
+      photosList.replaceChildren(
+        ...photos.map((p, i) => {
+          const li = document.createElement('li');
+          const img = document.createElement('img');
+          img.src = p.url;
+          img.alt = '';
+          const label = document.createElement('span');
+          label.className = 'photos__name';
+          label.textContent = p.file.name;
+          const size = document.createElement('span');
+          size.className = 'photos__size';
+          size.textContent = `${(p.file.size / 1024 / 1024).toFixed(1)} МБ`;
+          label.append(size);
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.setAttribute('aria-label', `Убрать фото ${p.file.name}`);
+          remove.textContent = '✕';
+          remove.addEventListener('click', () => {
+            URL.revokeObjectURL(p.url);
+            photos.splice(i, 1);
+            renderPhotos();
+            announce(`Фото ${p.file.name} убрано`);
+            dropzone.querySelector('input')?.focus();
+          });
+          li.append(img, label, remove);
+          return li;
+        }),
+      );
+    };
+
+    const addFiles = async (files: FileList | File[]) => {
+      const messages: string[] = [];
+      for (const file of [...files]) {
+        if (photos.length >= MAX_FILES) {
+          messages.push(`Можно добавить не больше ${MAX_FILES} фото`);
+          break;
+        }
+        const check = await checkFile(file);
+        if (check.ok) photos.push({ file, url: URL.createObjectURL(file) });
+        else messages.push(`«${file.name}»: ${check.reason}`);
+      }
+      photoError.textContent = [...new Set(messages)].join('. ');
+      renderPhotos();
+      if (photos.length) announce(`Фото добавлено: ${photos.length} из ${MAX_FILES}`);
+    };
+
+    photosInput.addEventListener('change', () => {
+      if (photosInput.files) void addFiles(photosInput.files);
+      photosInput.value = '';
+    });
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('is-over');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-over'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('is-over');
+      if (e.dataTransfer?.files.length) void addFiles(e.dataTransfer.files);
+    });
+
+    /* ---------- prefill from the helper and the calculator ---------- */
+
+    addEventListener(PREFILL_EVENT, (e) => {
+      const { service, text } = (e as CustomEvent<Prefill>).detail;
+      if (service) {
+        const radio = form.querySelector<HTMLInputElement>(`input[name="service"][value="${service}"]`);
+        if (radio) radio.checked = true;
+      }
+      if (text) {
+        desc.value = desc.value.trim() ? `${desc.value.trim()}\n${text}` : text;
+        desc.dispatchEvent(new Event('input'));
+      }
+      if (!done.hidden) clear(false);
+      section.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      const target = name.value.trim() ? (text ? desc : name) : name;
+      target.focus({ preventScroll: true });
+      announce(text ? 'Описание перенесено в заявку. Осталось указать имя и телефон.' : 'Опишите задачу своими словами.');
+    });
+
+    /* ---------- submit ---------- */
+
+    const row = (term: string, value: string) => {
+      const dt = document.createElement('dt');
+      dt.textContent = term;
+      const dd = document.createElement('dd');
+      dd.textContent = value;
+      return [dt, dd];
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      attempted = true;
+      const problems = validate();
+      showProblems(problems, true);
+      if (problems.length) {
+        focusQuietly(errorsBox);
+        return;
+      }
+      submit.setAttribute('aria-busy', 'true');
+      submit.disabled = true;
+      submit.textContent = 'Готовим заявку…';
+
+      // Real work even in the demo: photos are re-encoded so EXIF (including GPS) is dropped.
+      const cleaned = await Promise.all(
+        photos.map(async (p) => {
+          try {
+            const r = await stripMetadata(p.file);
+            return `${p.file.name}: ${r.width}×${r.height}, ${Math.round(r.blob.size / 1024)} КБ, без метаданных`;
+          } catch {
+            return `${p.file.name}: не удалось обработать, мастер попросит прислать фото позже`;
+          }
+        }),
+      );
+      // In a live deployment this is where the request would be POSTed to the CRM endpoint.
+
+      const digits = normalizePhone(phone.value)!;
+      const contact = (form.querySelector<HTMLInputElement>('input[name="contact"]:checked')?.value ?? 'call') === 'call' ? 'Позвонить' : 'Написать в мессенджер';
+      summary.replaceChildren(
+        ...row('Имя', name.value.trim()),
+        ...row('Телефон', maskPhone(digits)),
+        ...row('Работа', serviceLabel()),
+        ...row('Описание', desc.value.trim() || 'Не заполнено'),
+        ...row('Фото', cleaned.length ? cleaned.join('\n') : 'Нет'),
+        ...row('Связаться', contact),
+      );
+      track('request-demo');
+      removeEventListener('beforeunload', warnOnLeave);
+
+      form.hidden = true;
+      done.hidden = false;
+      submit.removeAttribute('aria-busy');
+      submit.disabled = false;
+      submit.textContent = 'Отправить заявку';
+      if (!prefersReducedMotion()) animate(done, { opacity: [0, 1], transform: ['scale(0.98)', 'scale(1)'] }, { duration: 0.35, ease: EASE });
+      focusQuietly($<HTMLElement>('[data-done-title]'));
+    });
+
+    /* ---------- clear: the user's own deletion of everything the form held ---------- */
+
+    const clear = (moveFocus = true) => {
+      removeEventListener('beforeunload', warnOnLeave);
+      photos.forEach((p) => URL.revokeObjectURL(p.url));
+      photos = [];
+      renderPhotos();
+      form.reset();
+      summary.replaceChildren();
+      count.textContent = '0 из 1000';
+      attempted = false;
+      showProblems([], true);
+      photoError.textContent = '';
+      done.hidden = true;
+      form.hidden = false;
+      reveal(form, 8);
+      if (moveFocus) {
+        name.focus();
+        announce('Данные заявки удалены из памяти вкладки.');
+      }
+    };
+    $<HTMLButtonElement>('[data-clear]').addEventListener('click', () => clear());
+  }
+</script>

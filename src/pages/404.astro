@@ -1,0 +1,26 @@
+---
+import { withBase } from '../lib/url';
+import Base from '../layouts/Base.astro';
+import { services } from '../data/services';
+---
+
+<Base title="Страница не найдена" description="Такой страницы на сайте нет." noindex>
+  <section class="container nf">
+    <p class="nf__code" aria-hidden="true">404</p>
+    <h1 class="h2">Такой страницы нет</h1>
+    <p class="lead">Возможно, ссылка устарела или в адресе опечатка. Вот куда можно пойти дальше:</p>
+    <ul class="nf__links">
+      <li><a href={withBase('/')}>На главную</a></li>
+      {services.map((s) => <li><a href={withBase(`/uslugi/${s.id}/`)}>{s.title}</a></li>)}
+      <li><a href={withBase('/#pomoshnik')}>Не знаю, что нужно</a></li>
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .nf { padding-block: clamp(3rem, 2rem + 5vw, 7rem); display: grid; gap: 1rem; justify-items: start; }
+  .nf__code { font-size: clamp(5rem, 3rem + 10vw, 10rem); font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; font-variation-settings: 'SHRP' 100; color: var(--signal); -webkit-text-stroke: 2px var(--ink); }
+  .nf__links { list-style: none; padding: 0; margin: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .nf__links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0.5rem 0.9rem; border: 1.5px solid var(--line-strong); border-radius: var(--r-s); text-decoration: none; font-weight: 550; }
+  .nf__links a:hover { border-color: var(--ink); }
+</style>

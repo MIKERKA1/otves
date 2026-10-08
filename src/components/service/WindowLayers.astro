@@ -1,0 +1,106 @@
+---
+import { windowLayers } from '../../data/services';
+
+interface Props {
+  uid: string;
+}
+const { uid } = Astro.props;
+---
+
+<div class="layers">
+  <svg class="layers__drawing" viewBox="0 0 420 270" role="img" aria-label="Разрез узла примыкания окна к стене: три слоя монтажного шва">
+    <defs>
+      <pattern id={`${uid}-brick`} width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="16" class="layers__hatch" />
+      </pattern>
+    </defs>
+    <text x="210" y="20" class="layers__side">Улица</text>
+    <text x="210" y="262" class="layers__side">Комната</text>
+    <rect x="20" y="40" width="130" height="200" fill={`url(#${uid}-brick)`} class="layers__wall" />
+    <rect x="146" y="96" width="38" height="10" class="layer layer--outer" />
+    <rect x="150" y="106" width="30" height="70" class="layer layer--foam" />
+    <rect x="146" y="176" width="38" height="10" class="layer layer--inner" />
+    <path d="M150 186V240H250" class="layers__slope" />
+    <rect x="184" y="96" width="70" height="90" rx="3" class="layers__frame" />
+    <path d="M196 108H242V174H196ZM204 118H234V164H204Z" class="layers__chambers" />
+    <path d="M254 116H410M254 141H410M254 166H410" class="layers__glass" />
+    <g class="layers__marks">
+      <path d="M165 101L120 70H96" /><text x="88" y="74" class="layers__num">1</text>
+      <path d="M165 141L120 141H96" /><text x="88" y="145" class="layers__num">2</text>
+      <path d="M165 181L120 212H96" /><text x="88" y="216" class="layers__num">3</text>
+    </g>
+  </svg>
+
+  <fieldset>
+    <legend class="layers__legend">Три слоя монтажного шва, снаружи внутрь</legend>
+    <ol class="layers__list">
+      {windowLayers.map((l, i) => (
+        <li>
+          <label class="layers__item">
+            <input type="radio" name={`${uid}-layer`} value={l.id} checked={i === 2} />
+            <span class="layers__n">{i + 1}</span>
+            <span>
+              <span class="layers__title">{l.title}</span>
+              <span class="layers__text">{l.text}</span>
+            </span>
+          </label>
+        </li>
+      ))}
+    </ol>
+  </fieldset>
+</div>
+
+<style>
+  .layers { display: grid; gap: 1.25rem; }
+  .layers__drawing { width: 100%; max-width: 460px; background: var(--sunken); border-radius: var(--r-s); }
+  .layers__side { font-family: var(--font); font-size: 12px; fill: var(--ink-2); text-anchor: middle; }
+  .layers__hatch { stroke: var(--line-strong); stroke-width: 1.5; }
+  .layers__wall { stroke: var(--ink-2); stroke-width: 1.5; }
+  .layers__frame { fill: light-dark(#fbfbf9, #e8eae6); stroke: var(--ink); stroke-width: 2; }
+  .layers__chambers { fill: none; stroke: var(--ink-2); stroke-width: 1.2; }
+  .layers__glass { stroke: light-dark(#6e94ad, #8fb3c9); stroke-width: 3; }
+  .layers__slope { fill: none; stroke: var(--ink-2); stroke-width: 2; stroke-dasharray: 5 4; }
+  .layer { stroke: var(--ink); stroke-width: 1.2; transition: opacity 0.3s, stroke-width 0.3s; opacity: 0.45; }
+  .layer--outer { fill: #8d9aa3; }
+  .layer--foam { fill: #f1d68a; }
+  .layer--inner { fill: #c9b9e8; }
+  .layers__marks path { fill: none; stroke: var(--ink-2); stroke-width: 1; }
+  .layers__num { font-family: var(--font); font-size: 14px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+
+  .layers:has(input[value='outer']:checked) .layer--outer,
+  .layers:has(input[value='foam']:checked) .layer--foam,
+  .layers:has(input[value='inner']:checked) .layer--inner {
+    opacity: 1;
+    stroke-width: 2.5;
+  }
+
+  .layers__legend { font-weight: 600; margin-bottom: 0.6rem; }
+  .layers__list { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+  .layers__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border: 1.5px solid var(--line);
+    border-radius: var(--r-s);
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+  .layers__item:hover { border-color: var(--ink-2); }
+  .layers__item input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .layers__item:has(input:checked) { border-color: var(--ink); background: var(--bg); }
+  .layers__item:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .layers__n {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    font-weight: 700;
+  }
+  .layers__item:has(input:checked) .layers__n { background: var(--signal); border-color: var(--on-signal); color: var(--on-signal); }
+  .layers__title { display: block; font-weight: 600; }
+  .layers__text { display: block; color: var(--ink-2); font-size: 0.9375rem; margin-top: 0.15rem; }
+</style>

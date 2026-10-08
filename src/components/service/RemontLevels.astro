@@ -1,0 +1,66 @@
+---
+import Icon from '../Icon.astro';
+import { remontLevels, remontWorks } from '../../data/services';
+import { rubFrom } from '../../lib/format';
+
+interface Props {
+  uid: string;
+}
+const { uid } = Astro.props;
+---
+
+<div class="levels">
+  <fieldset>
+    <legend class="levels__legend">Насколько глубоко ремонтируем?</legend>
+    <div class="levels__picker">
+      {remontLevels.map((l) => (
+        <label class="chip">
+          <input type="radio" name={`${uid}-level`} value={l.id} checked={l.id === 'capital'} />
+          <span>{l.title}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+
+  {remontLevels.map((l) => (
+    <div class="levels__panel" data-level={l.id}>
+      <p class="levels__text">{l.text}</p>
+      <ul class="levels__works">
+        {remontWorks.map((w) => {
+          const included = (l.includes as readonly string[]).includes(w.id);
+          return (
+            <li class:list={['levels__work', { 'is-in': included }]}>
+              <Icon name={included ? 'check' : 'minus'} />
+              <span>{w.label}</span>
+              <span class="visually-hidden">{included ? ', входит' : ', не входит'}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <p class="levels__meta"><strong class="num">{rubFrom(l.from, 'за м²')}</strong><span>{l.duration}</span></p>
+    </div>
+  ))}
+</div>
+
+<style>
+  .levels { display: grid; gap: 1rem; }
+  .levels__legend { font-weight: 600; margin-bottom: 0.6rem; }
+  .levels__picker { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .levels__panel { display: none; gap: 1rem; }
+  .levels:has(input[value='cosmetic']:checked) [data-level='cosmetic'],
+  .levels:has(input[value='capital']:checked) [data-level='capital'],
+  .levels:has(input[value='turnkey']:checked) [data-level='turnkey'] {
+    display: grid;
+  }
+  .levels__text { max-width: 60ch; }
+  .levels__works { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem 1.5rem; }
+  .levels__work { display: flex; gap: 0.55rem; align-items: flex-start; color: var(--ink-2); }
+  .levels__work :global(.icon) { margin-top: 0.15em; opacity: 0.6; }
+  .levels__work.is-in { color: var(--ink); }
+  .levels__work.is-in :global(.icon) { opacity: 1; color: var(--ok); }
+  .levels__work:not(.is-in) > span:not(.visually-hidden) { text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--ink-2) 60%, transparent); }
+  .levels__meta { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; align-items: baseline; padding-top: 0.75rem; border-top: 1px solid var(--line); }
+  .levels__meta strong { font-size: var(--step-1); }
+  .levels__meta span { color: var(--ink-2); }
+  @media (max-width: 560px) { .levels__works { grid-template-columns: 1fr; } }
+</style>

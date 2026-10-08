@@ -1,0 +1,296 @@
+---
+import { withBase } from '../lib/url';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { nav, site } from '../data/site';
+---
+
+<div class="demo-bar">
+  <div class="container demo-bar__inner">
+    <Icon name="info" />
+    <p>Демо-проект для портфолио. Компании «Отвес» не существует, заявки никуда не отправляются. <a href={withBase('/o-proekte/')}>Подробнее о проекте</a></p>
+  </div>
+</div>
+
+<header class="header">
+  <div class="container header__inner">
+    <a href={withBase('/')} class="header__logo" aria-label="Отвес, на главную"><Logo /></a>
+
+    <nav class="header__nav" aria-label="Основное меню">
+      <ul class="header__links">
+        {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <a class="header__phone" href={site.phone.href}>
+        <Icon name="phone" />
+        <span class="header__phone-text">{site.phone.display}</span>
+        <span class="visually-hidden header__phone-sr">Позвонить: {site.phone.display}</span>
+      </a>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+        <Icon name="moon" class="theme-toggle__moon" />
+        <Icon name="sun" class="theme-toggle__sun" />
+        <span class="visually-hidden">Тёмная тема</span>
+      </button>
+      <a class="btn btn--primary btn--small header__cta" href={withBase('/#zayavka')}>Оставить заявку</a>
+      <button class="btn btn--ghost btn--small header__menu" type="button" data-menu-open aria-haspopup="dialog">
+        <Icon name="list" /> Меню
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog class="menu" data-menu aria-label="Меню сайта">
+  <div class="menu__top">
+    <Logo />
+    <button class="menu__close" type="button" data-menu-close>
+      <Icon name="x" /><span class="visually-hidden">Закрыть меню</span>
+    </button>
+  </div>
+  <nav aria-label="Меню сайта">
+    <ul class="menu__links">
+      {nav.map((item) => <li><a href={item.href} data-menu-link>{item.label}</a></li>)}
+      <li><a href={withBase('/#pomoshnik')} data-menu-link>Не знаю, что нужно</a></li>
+    </ul>
+  </nav>
+  <div class="menu__bottom">
+    <a class="btn btn--primary btn--block" href={withBase('/#zayavka')} data-menu-link>Оставить заявку</a>
+    <a class="btn btn--ghost btn--block" href={site.phone.href}><Icon name="phone" /> {site.phone.display}</a>
+    <p class="small muted">{site.hours}. Номер демонстрационный.</p>
+    <button class="theme-toggle theme-toggle--wide" type="button" data-theme-toggle aria-pressed="false">
+      <Icon name="moon" class="theme-toggle__moon" />
+      <Icon name="sun" class="theme-toggle__sun" />
+      <span>Тёмная тема</span>
+    </button>
+  </div>
+</dialog>
+
+<style>
+  .demo-bar {
+    background: var(--sunken);
+    color: var(--ink-2);
+    font-size: var(--step--1);
+  }
+  .demo-bar__inner {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-height: 36px;
+    padding-block: 0.4rem;
+  }
+  .demo-bar a { color: var(--ink); }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    view-transition-name: site-header;
+  }
+  @supports (animation-timeline: scroll()) {
+    .header {
+      border-bottom-color: transparent;
+      animation: header-edge linear both;
+      animation-timeline: scroll();
+      animation-range: 0 120px;
+    }
+    @keyframes header-edge {
+      to { border-bottom-color: var(--line); }
+    }
+  }
+  .header__inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: var(--header-h);
+  }
+  .header__logo { text-decoration: none; padding: 6px 2px; margin-left: -2px; }
+  .header__nav { margin-left: auto; }
+  .header__links { display: flex; gap: 1.5rem; }
+  .header__links a {
+    text-decoration: none;
+    font-weight: 500;
+    padding-block: 0.5rem;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1.5px no-repeat;
+    transition: background-size 0.25s var(--ease-out);
+  }
+  .header__links a:hover { background-size: 100% 1.5px; }
+  .header__actions { display: flex; align-items: center; gap: 0.75rem; }
+  .header__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 550;
+    text-decoration: none;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .header__phone-sr { display: none; }
+
+  .theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--r-s);
+    background: transparent;
+    cursor: pointer;
+  }
+  .theme-toggle:hover { border-color: var(--ink); }
+  .theme-toggle :global(.theme-toggle__sun) { display: none; }
+  .theme-toggle[aria-pressed='true'] :global(.theme-toggle__sun) { display: block; }
+  .theme-toggle[aria-pressed='true'] :global(.theme-toggle__moon) { display: none; }
+  .theme-toggle--wide {
+    display: inline-flex;
+    gap: 0.6rem;
+    width: auto;
+    padding: 0 1rem;
+    justify-self: start;
+  }
+
+  .header__menu { display: none; }
+
+  @media (max-width: 1100px) {
+    .header__nav { display: none; }
+    .header__actions { margin-left: auto; }
+    .header__menu { display: inline-flex; }
+  }
+  @media (max-width: 720px) {
+    .header__phone-text, .header__cta, .header__actions > .theme-toggle { display: none; }
+    .header__phone {
+      width: 44px;
+      height: 44px;
+      justify-content: center;
+      border: 1.5px solid var(--line-strong);
+      border-radius: var(--r-s);
+    }
+    .header__phone-sr { display: block; }
+    .demo-bar p { font-size: 0.8125rem; }
+  }
+
+  /* Mobile menu: a modal sheet, so focus stays inside and Escape closes it. */
+  .menu {
+    width: 100%;
+    max-width: 480px;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0 0 0 auto;
+    border-radius: 0;
+    padding: 0 var(--gutter) 1.5rem;
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: var(--bg);
+  }
+  .menu[open] { display: flex; }
+  .menu__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: var(--header-h);
+  }
+  .menu__close {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--r-s);
+    background: transparent;
+    cursor: pointer;
+  }
+  .menu__close :global(.icon) { width: 22px; height: 22px; }
+  .menu__links { display: grid; }
+  .menu__links a {
+    display: block;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--step-2);
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .menu__bottom { display: grid; gap: 0.75rem; margin-top: auto; }
+</style>
+
+<script>
+  import { animate } from 'motion/mini';
+  import { stagger } from 'motion';
+  import { KEYS, write } from '../lib/storage';
+  import { EASE, focusQuietly, prefersReducedMotion } from '../lib/motion';
+
+  /* Theme: follows the system until the visitor picks one; the pick is stored as «light» or «dark». */
+  const root = document.documentElement;
+  const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+  const toggles = document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]');
+  const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : darkQuery.matches);
+  const sync = () => {
+    toggles.forEach((t) => t.setAttribute('aria-pressed', String(isDark())));
+    // Browser chrome follows the page, including a manually chosen theme.
+    if (root.dataset.theme) {
+      document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => (m.content = isDark() ? '#15181b' : '#eef0ec'));
+    }
+  };
+  sync();
+  darkQuery.addEventListener('change', sync);
+
+  toggles.forEach((toggle) =>
+    toggle.addEventListener('click', () => {
+      const next = isDark() ? 'light' : 'dark';
+      const apply = () => {
+        root.dataset.theme = next;
+        write(KEYS.theme, next);
+        sync();
+      };
+      if (prefersReducedMotion() || !document.startViewTransition) return apply();
+      // A circle of the new theme grows from the button that was pressed.
+      const r = toggle.getBoundingClientRect();
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      root.classList.add('theme-vt');
+      const vt = document.startViewTransition(apply);
+      vt.finished.finally(() => root.classList.remove('theme-vt'));
+      vt.ready.then(() => {
+        root.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+          { duration: 480, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' },
+        );
+      });
+    }),
+  );
+
+  /* Mobile menu */
+  const menu = document.querySelector<HTMLDialogElement>('[data-menu]');
+  const openBtn = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+  if (menu && openBtn) {
+    openBtn.addEventListener('click', () => {
+      menu.showModal();
+      if (!prefersReducedMotion()) {
+        animate(menu, { opacity: [0, 1], transform: ['translateX(24px)', 'translateX(0)'] }, { duration: 0.32, ease: EASE });
+        animate(menu.querySelectorAll('.menu__links li'), { opacity: [0, 1], transform: ['translateX(16px)', 'translateX(0)'] }, { duration: 0.3, delay: stagger(0.035, { startDelay: 0.06 }), ease: EASE });
+      }
+    });
+    menu.querySelector('[data-menu-close]')?.addEventListener('click', () => menu.close());
+    // Clicking the dimmed area outside the sheet closes it too.
+    menu.addEventListener('click', (e) => {
+      if (e.target === menu) menu.close();
+    });
+    menu.querySelectorAll<HTMLAnchorElement>('[data-menu-link]').forEach((link) =>
+      link.addEventListener('click', (e) => {
+        const url = new URL(link.href);
+        const target = url.pathname === location.pathname && url.hash ? document.querySelector<HTMLElement>(url.hash) : null;
+        menu.close();
+        if (!target) return;
+        // Same-page anchor: move focus to the section, not back to the menu button.
+        e.preventDefault();
+        history.pushState(null, '', url.hash);
+        target.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+        focusQuietly(target.querySelector<HTMLElement>('h2, h1') ?? target);
+      }),
+    );
+  }
+</script>

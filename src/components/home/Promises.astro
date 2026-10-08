@@ -1,0 +1,50 @@
+---
+import { promises } from '../../data/content';
+---
+
+<section class="promises" aria-labelledby="promises-title">
+  <div class="tape" aria-hidden="true"></div>
+  <div class="container">
+    <h2 id="promises-title" class="visually-hidden">Что обещаем и записываем в договор</h2>
+    <ul class="promises__list">
+      {promises.map((p) => (
+        <li class="promises__item">
+          <h3 class="promises__title">{p.title}</h3>
+          <p class="promises__text">{p.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .promises { background: var(--surface); border-bottom: 1px solid var(--line); }
+  /* A strip of tape measure: millimetre ticks, longer every 5 cm. */
+  .tape {
+    height: 14px;
+    background:
+      repeating-linear-gradient(90deg, var(--on-signal) 0 1.5px, transparent 1.5px 50px) 0 0 / 100% 10px no-repeat,
+      repeating-linear-gradient(90deg, var(--on-signal) 0 1px, transparent 1px 10px) 0 0 / 100% 5px no-repeat,
+      var(--signal);
+  }
+  .promises__list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .promises__item { padding: 1.5rem 1.5rem 1.75rem 0; }
+  .promises__item + .promises__item { padding-left: 1.5rem; border-left: 1px solid var(--line); }
+  .promises__title { font-size: var(--step-1); letter-spacing: -0.01em; }
+  .promises__text { margin-top: 0.35rem; color: var(--ink-2); font-size: 0.9375rem; }
+
+  @media (max-width: 900px) {
+    .promises__list { grid-template-columns: 1fr 1fr; }
+    .promises__item, .promises__item + .promises__item { padding: 1.25rem 1rem 1.25rem 0; border-left: 0; }
+    .promises__item:nth-child(even) { padding-left: 1rem; border-left: 1px solid var(--line); }
+    .promises__item:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  }
+  @media (max-width: 340px) {
+    .promises__list { grid-template-columns: 1fr; }
+    .promises__item:nth-child(even) { padding-left: 0; border-left: 0; }
+    .promises__item + .promises__item { border-top: 1px solid var(--line); }
+  }
+</style>

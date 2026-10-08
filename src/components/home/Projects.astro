@@ -1,0 +1,240 @@
+---
+import { Picture } from 'astro:assets';
+import Icon from '../Icon.astro';
+import BeforeAfter from './BeforeAfter.astro';
+import { projects } from '../../data/projects';
+import { rubRange } from '../../lib/format';
+
+const quotes = [projects[0], projects[2], projects[4]].filter((p) => p !== undefined);
+---
+
+<section id="raboty" class="section works" aria-labelledby="works-title">
+  <div class="container">
+    <h2 id="works-title" class="h2">Как это выглядит вживую</h2>
+    <p class="lead works__lead">Фотографии настоящего ремонта по этапам: голые стены, черновые работы, готовая квартира.</p>
+    <p class="demo-note works__note">
+      <Icon name="info" />
+      <span>Кейсы демонстрационные. Фото сняты на реальном ремонте другой компании и взяты с Unsplash, а задачи, цены, сроки и отзывы придуманы для портфолио.</span>
+    </p>
+
+    <div class="works__ba">
+      <BeforeAfter />
+    </div>
+
+    <h3 class="h3 works__subtitle">Примеры работ</h3>
+    <ul class="cases">
+      {projects.map((p, i) => (
+        <li class:list={['case', `case--${i + 1}`]}>
+          <Picture
+            src={p.cover.src}
+            alt={p.cover.alt}
+            formats={['avif', 'webp']}
+            widths={[480, 720, 1080]}
+            sizes={i === 0 ? '(max-width: 760px) 92vw, 60vw' : '(max-width: 760px) 92vw, 30vw'}
+            class="case__img"
+            loading="lazy"
+          />
+          <div class="case__body">
+            <h4 class="case__title">
+              <button type="button" class="case__open" data-case-open={p.id} aria-haspopup="dialog">{p.title}</button>
+            </h4>
+            <p class="case__meta num">{p.duration}, {rubRange(p.cost)} за работу</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+
+    <div class="reviews">
+      <h3 class="h3">Что говорят после приёмки</h3>
+      <p class="demo-note"><Icon name="info" /><span>Отзывы демонстрационные: люди и истории придуманы для примера.</span></p>
+      <div class="reviews__grid">
+        {quotes.map((p, i) => (
+          <figure class:list={['review', { 'review--lead': i === 0 }]}>
+            <blockquote><p>{p.review.text}</p></blockquote>
+            <figcaption>{p.review.author}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {projects.map((p) => (
+    <dialog class="case-dialog" id={`case-${p.id}`} aria-labelledby={`case-${p.id}-title`}>
+      <div class="case-dialog__head">
+        <div>
+          <p class="case-dialog__kicker">Демо-кейс</p>
+          <h3 id={`case-${p.id}-title`} class="h3">{p.title}</h3>
+        </div>
+        <button type="button" class="case-dialog__close" data-case-close>
+          <Icon name="x" /><span class="visually-hidden">Закрыть</span>
+        </button>
+      </div>
+      <div class="case-dialog__body">
+        <ul class="case-dialog__gallery">
+          {p.photos.map((ph) => (
+            <li>
+              <Picture src={ph.src} alt={ph.alt} formats={['avif', 'webp']} widths={[480, 800, 1200]} sizes="(max-width: 760px) 92vw, 360px" loading="lazy" />
+              <p class="case-dialog__stage">{ph.stage}</p>
+            </li>
+          ))}
+        </ul>
+        <dl class="case-dialog__facts">
+          {p.area && <div><dt>Площадь</dt><dd>{p.area}</dd></div>}
+          <div><dt>Срок</dt><dd>{p.duration}</dd></div>
+          <div><dt>Стоимость работ</dt><dd class="num">{rubRange(p.cost)}</dd></div>
+        </dl>
+        <h4>Задача</h4>
+        <p>{p.task}</p>
+        <h4>Что сделали</h4>
+        <ul class="case-dialog__list">{p.done.map((d) => <li>{d}</li>)}</ul>
+        <h4>Материалы</h4>
+        <p>{p.materials.join(', ')}.</p>
+        <h4>Результат</h4>
+        <p>{p.result}</p>
+        <figure class="case-dialog__review">
+          <blockquote><p>{p.review.text}</p></blockquote>
+          <figcaption>{p.review.author}, демо-отзыв</figcaption>
+        </figure>
+        <p class="small muted">Фото: immo RENOVATION на Unsplash. Цены, сроки и отзыв придуманы для портфолио.</p>
+        <a class="btn btn--primary" href="#zayavka" data-case-cta>Оставить заявку</a>
+      </div>
+    </dialog>
+  ))}
+</section>
+
+<style>
+  .works__lead { margin-top: 1rem; }
+  .works__note { margin-top: 0.75rem; max-width: 70ch; }
+  .works__ba { margin-top: clamp(2rem, 1.5rem + 2vw, 3rem); }
+  .works__subtitle { margin-top: clamp(3rem, 2rem + 3vw, 5rem); margin-bottom: 1.25rem; }
+
+  .cases { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(1rem, 0.5rem + 1.5vw, 1.75rem); }
+  .case { position: relative; display: grid; grid-template-rows: auto 1fr; gap: 0.75rem; }
+  .case--1 { grid-column: span 4; grid-row: span 2; }
+  .case--2, .case--3, .case--4, .case--5 { grid-column: span 2; }
+  .case--6 { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); grid-template-rows: auto; align-items: center; }
+  .case :global(.case__img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-m); transition: transform 0.4s var(--ease-out); }
+  .case--1 :global(.case__img) { aspect-ratio: auto; height: 100%; min-height: 360px; }
+  .case--6 :global(.case__img) { aspect-ratio: 16 / 9; }
+  .case:hover :global(.case__img) { transform: scale(1.015); }
+  .case__body { display: grid; gap: 0.25rem; align-content: start; }
+  .case__title { font-size: var(--step-1); font-weight: 600; letter-spacing: -0.01em; font-variation-settings: normal; }
+  .case__open {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.2em;
+    transition: text-decoration-color 0.2s;
+  }
+  /* The whole card opens the case, but only the title is announced as the button. */
+  .case__open::after { content: ''; position: absolute; inset: 0; }
+  .case:hover .case__open { text-decoration-color: currentColor; }
+  .case__open:focus-visible { outline: none; }
+  .case:has(.case__open:focus-visible) { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: var(--r-m); }
+  .case__meta { color: var(--ink-2); font-size: 0.9375rem; }
+
+  .reviews { margin-top: clamp(3rem, 2rem + 3vw, 5rem); display: grid; gap: 0.75rem; }
+  .reviews__grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); grid-template-rows: auto auto; gap: 1.25rem 2.5rem; margin-top: 1rem; }
+  .review { display: grid; gap: 0.75rem; align-content: start; }
+  .review blockquote { margin: 0; }
+  .review blockquote p { font-size: var(--step-1); line-height: 1.45; }
+  .review blockquote p::before { content: '«'; }
+  .review blockquote p::after { content: '»'; }
+  .review figcaption { color: var(--ink-2); font-size: 0.9375rem; }
+  .review--lead { grid-row: span 2; padding: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-m); }
+  .review--lead blockquote p { font-size: var(--step-3); font-weight: 600; line-height: 1.25; letter-spacing: -0.02em; font-variation-settings: 'SHRP' 60; }
+
+  /* Case dialog */
+  .case-dialog { width: min(100vw - 24px, 820px); }
+  .case-dialog[open] { display: flex; flex-direction: column; }
+  .case-dialog__head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    padding: 1.25rem clamp(1.25rem, 1rem + 1.5vw, 2rem) 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .case-dialog__kicker { font-size: var(--step--1); color: var(--ink-2); }
+  .case-dialog__close {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--r-s);
+    background: transparent;
+    cursor: pointer;
+  }
+  .case-dialog__body { display: grid; gap: 0.75rem; padding: 1.25rem clamp(1.25rem, 1rem + 1.5vw, 2rem) 2rem; overflow-y: auto; }
+  .case-dialog__body h4 { margin-top: 0.75rem; font-size: 1.0625rem; font-variation-settings: normal; letter-spacing: 0; }
+  .case-dialog__gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+  .case-dialog__gallery :global(img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-s); }
+  .case-dialog__stage { margin-top: 0.3rem; font-size: var(--step--1); color: var(--ink-2); }
+  .case-dialog__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 1rem 0; border-block: 1px solid var(--line); margin-top: 0.5rem; }
+  .case-dialog__facts dt { font-size: var(--step--1); color: var(--ink-2); }
+  .case-dialog__facts dd { font-weight: 600; }
+  .case-dialog__list { padding-left: 1.2rem; display: grid; gap: 0.3rem; }
+  .case-dialog__review { margin: 0.75rem 0 0; padding: 1rem 1.15rem; background: var(--bg); border-radius: var(--r-s); }
+  .case-dialog__review blockquote { margin: 0; }
+  .case-dialog__review figcaption { margin-top: 0.4rem; color: var(--ink-2); font-size: var(--step--1); }
+  .case-dialog .btn { justify-self: start; margin-top: 0.5rem; }
+
+  @media (max-width: 900px) {
+    .cases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .case--1, .case--6 { grid-column: 1 / -1; grid-row: auto; }
+    .case--2, .case--3, .case--4, .case--5 { grid-column: span 1; }
+    .case--1 :global(.case__img) { aspect-ratio: 4 / 3; min-height: 0; }
+    .case--6 { grid-template-columns: 1fr; }
+    .reviews__grid { grid-template-columns: 1fr; }
+    .review--lead { grid-row: auto; }
+  }
+  @media (max-width: 560px) {
+    .cases { grid-template-columns: 1fr; }
+    .case--2, .case--3, .case--4, .case--5 { grid-column: 1 / -1; }
+    .case-dialog { width: 100vw; max-width: 100vw; max-height: 100dvh; height: 100dvh; border-radius: 0; margin: 0; }
+    .case-dialog__facts { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<script>
+  import { animate } from 'motion/mini';
+  import { EASE, focusQuietly, prefersReducedMotion } from '../../lib/motion';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-case-open]').forEach((btn) => {
+    const dialog = document.getElementById(`case-${btn.dataset.caseOpen}`) as HTMLDialogElement | null;
+    if (!dialog) return;
+    btn.addEventListener('click', () => {
+      dialog.showModal();
+      if (!prefersReducedMotion()) animate(dialog, { opacity: [0, 1], transform: ['translateY(18px)', 'translateY(0)'] }, { duration: 0.3, ease: EASE });
+    });
+  });
+
+  document.querySelectorAll<HTMLDialogElement>('.case-dialog').forEach((dialog) => {
+    dialog.querySelector('[data-case-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    // «Оставить заявку» inside the dialog: closing returns focus to the card, so move it on to the form.
+    dialog.querySelector('[data-case-cta]')?.addEventListener('click', (e) => {
+      const form = document.getElementById('zayavka');
+      if (!form) return;
+      e.preventDefault();
+      dialog.close();
+      history.pushState(null, '', '#zayavka');
+      form.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      focusQuietly(form.querySelector<HTMLElement>('h2'));
+    });
+  });
+</script>

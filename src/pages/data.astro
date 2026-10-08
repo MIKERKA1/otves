@@ -1,0 +1,163 @@
+---
+import { withBase } from '../lib/url';
+import Legal from '../layouts/Legal.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Legal
+  title="Ваши данные и их удаление"
+  description="Что демо-сайт «Отвес» хранит в вашем браузере прямо сейчас и как удалить это одной кнопкой."
+  updated="8 октября 2026"
+>
+  <h2>Что сайт хранит в этом браузере сейчас</h2>
+  <p>Список ниже читается из хранилища браузера при открытии страницы и обновляется, когда вы что-то удаляете или меняете.</p>
+
+  <div class="stored" data-stored>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Таблица: что сайт хранит сейчас">
+      <table>
+        <thead>
+          <tr><th scope="col">Что</th><th scope="col">Значение</th><th scope="col">Срок</th><th scope="col"><span class="visually-hidden">Действие</span></th></tr>
+        </thead>
+        <tbody data-stored-rows></tbody>
+      </table>
+    </div>
+    <p class="stored__empty" data-stored-empty hidden><Icon name="check-circle" /> Ничего. Сайт ничего не сохранил в этом браузере.</p>
+    <p class="stored__actions">
+      <button type="button" class="btn btn--dark" data-delete-all><Icon name="trash" /> Удалить всё и сбросить настройки</button>
+    </p>
+    <noscript><p>Без JavaScript сайт ничего не сохраняет в браузере, удалять нечего.</p></noscript>
+  </div>
+  <p class="visually-hidden" role="status" data-data-status></p>
+
+  <h2>Данные из формы заявки</h2>
+  <p>
+    Здесь их нет, и это не ошибка. Заявка в демо не отправляется на сервер и не записывается в хранилище браузера. Пока вкладка открыта,
+    данные лежат в её памяти. Кнопка «Очистить заявку» после отправки и закрытие вкладки удаляют их полностью.
+  </p>
+  <p>
+    Одно исключение не зависит от сайта: браузер сам может запомнить имя и телефон для автозаполнения. Удалить их можно в настройках
+    браузера, в разделе с данными автозаполнения форм.
+  </p>
+
+  <h2>Если бы компания была настоящей</h2>
+  <p>Тогда заявка хранилась бы на сервере компании, и удалить её кнопкой в браузере было бы нельзя. Порядок был бы такой:</p>
+  <ol>
+    <li>Вы пишете на адрес для запросов о данных или говорите об этом прорабу по телефону.</li>
+    <li>Компания проверяет, что запрос от вас: например, перезванивает на номер из заявки.</li>
+    <li>Заявка, фото и записи о звонках удаляются, вы получаете подтверждение.</li>
+    <li>Если данные нужно хранить по закону (например, договор и акты), вам объясняют, что именно останется и до какого срока.</li>
+  </ol>
+  <p>
+    Ответить на такой запрос компания обязана в сроки, которые устанавливает закон о персональных данных. Подробнее о том, какие данные
+    собираются, в <a href={withBase('/privacy/')}>политике конфиденциальности</a>.
+  </p>
+
+  <h2>Ограничения демо</h2>
+  <ul>
+    <li>У сайта нет сервера с данными, поэтому удалять «на стороне компании» нечего.</li>
+    <li>Всё, что сайт может хранить, лежит в вашем браузере и удаляется кнопкой выше.</li>
+    <li>Если на хостинге включены журналы запросов, в них может остаться ваш IP-адрес. Это настройка хостинга, сайт такие журналы не читает.</li>
+  </ul>
+</Legal>
+
+<style>
+  .stored { margin: 1.25rem 0 2rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-m); }
+  .stored table { margin-bottom: 0; }
+  .stored :global(td button) { white-space: nowrap; }
+  .stored__empty { display: flex; gap: 0.5rem; align-items: center; font-weight: 550; }
+  .stored__empty :global(.icon) { color: var(--ok); }
+  .stored__actions { margin: 1.25rem 0 0; }
+</style>
+
+<script>
+  import { KEYS, readJson, readRaw, remove, removeAll, type StorageKey } from '../lib/storage';
+  import { CONSENT_EVENT, resetConsent } from '../lib/consent';
+
+  type Stats = { since: number; views: Record<string, number>; events: Record<string, number> };
+  const date = (ms: number) => new Date(ms).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const describe: Record<StorageKey, { title: string; keep: string; value: () => string }> = {
+    [KEYS.consent]: {
+      title: 'Выбор по cookie',
+      keep: '12 месяцев',
+      value: () => {
+        const c = readJson<{ analytics: boolean; at: number }>(KEYS.consent);
+        return c ? `${c.analytics ? 'Статистика разрешена' : 'Только необходимые'}, с ${date(c.at)}` : '';
+      },
+    },
+    [KEYS.theme]: {
+      title: 'Тема оформления',
+      keep: 'Пока не сбросите',
+      value: () => (readRaw(KEYS.theme) === 'dark' ? 'Тёмная' : 'Светлая'),
+    },
+    [KEYS.stats]: {
+      title: 'Анонимная статистика',
+      keep: '30 дней',
+      value: () => {
+        const s = readJson<Stats>(KEYS.stats);
+        if (!s) return '';
+        const views = Object.values(s.views ?? {}).reduce((a, b) => a + b, 0);
+        const e = s.events ?? {};
+        return `Просмотров страниц: ${views}. Расчётов: ${e.calculator ?? 0}. Ответов помощника: ${e.helper ?? 0}. Заявок в демо: ${e['request-demo'] ?? 0}. Считается с ${date(s.since)}.`;
+      },
+    },
+  };
+
+  const rows = document.querySelector<HTMLTableSectionElement>('[data-stored-rows]')!;
+  const empty = document.querySelector<HTMLElement>('[data-stored-empty]')!;
+  const table = rows.closest('table')!;
+  const status = document.querySelector<HTMLElement>('[data-data-status]')!;
+  const announce = (text: string) => {
+    status.textContent = '';
+    requestAnimationFrame(() => (status.textContent = text));
+  };
+
+  const removeKey = (key: StorageKey) => {
+    if (key === KEYS.consent) resetConsent();
+    else remove(key);
+    if (key === KEYS.theme) delete document.documentElement.dataset.theme;
+  };
+
+  const render = () => {
+    const present = (Object.values(KEYS) as StorageKey[]).filter((k) => readRaw(k) !== null);
+    rows.replaceChildren(
+      ...present.map((key) => {
+        const d = describe[key];
+        const tr = document.createElement('tr');
+        const cells = [d.title, d.value(), d.keep].map((text) => {
+          const td = document.createElement('td');
+          td.textContent = text;
+          return td;
+        });
+        const action = document.createElement('td');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn--ghost btn--small';
+        btn.textContent = 'Удалить';
+        btn.setAttribute('aria-label', `Удалить: ${d.title.toLowerCase()}`);
+        btn.addEventListener('click', () => {
+          removeKey(key);
+          render();
+          announce(`${d.title} удалено.`);
+          (rows.querySelector('button') ?? document.querySelector<HTMLElement>('[data-delete-all]'))?.focus();
+        });
+        action.append(btn);
+        tr.append(...cells, action);
+        return tr;
+      }),
+    );
+    table.hidden = present.length === 0;
+    empty.hidden = present.length > 0;
+  };
+
+  document.querySelector('[data-delete-all]')?.addEventListener('click', () => {
+    removeAll();
+    resetConsent();
+    delete document.documentElement.dataset.theme;
+    render();
+    announce('Всё удалено. Сайт снова спросит про cookie, тема вернулась к системной.');
+  });
+
+  addEventListener(CONSENT_EVENT, render);
+  render();
+</script>

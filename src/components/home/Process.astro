@@ -1,0 +1,157 @@
+---
+import { processSteps, scenarios } from '../../data/content';
+
+const MIN_WIDTH = 1.6;
+const bar = (start: number, end: number, days: number) => {
+  const x = (start / days) * 100;
+  return { x: +x.toFixed(2), w: +Math.max(((end - start) / days) * 100, MIN_WIDTH).toFixed(2) };
+};
+const first = scenarios[0]!;
+---
+
+<section id="etapy" class="section section--surface process" aria-labelledby="process-title">
+  <div class="container">
+    <h2 id="process-title" class="h2">Как всё пройдёт</h2>
+    <p class="lead process__lead">Семь шагов от заявки до приёмки. Выберите задачу, и график покажет, сколько занимает каждый шаг.</p>
+
+    <div class="process__app" data-process>
+      <fieldset class="process__switch">
+        <legend class="visually-hidden">Задача для графика</legend>
+        {scenarios.map((s, i) => (
+          <label class="chip"><input type="radio" name="scenario" value={s.id} checked={i === 0} /><span>{s.title}</span></label>
+        ))}
+      </fieldset>
+
+      <div class="gantt__head" aria-hidden="true">
+        <span></span>
+        <div class="gantt__axis">
+          {scenarios.map((s) => (
+            <div class="gantt__ticks" data-scn={s.id} data-cols={s.axis.length - 1}>
+              {s.axis.map((label) => <span>{label}</span>)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <ol class="gantt">
+        {processSteps.map((st, i) => {
+          const timing = Object.fromEntries(scenarios.map((s) => [s.id, bar(s.timing[st.id][0], s.timing[st.id][1], s.days)]));
+          const b = timing[first.id]!;
+          return (
+            <li class="gantt__row">
+              <div class="gantt__label">
+                <span class="gantt__n" aria-hidden="true">{i + 1}</span>
+                <div>
+                  <h3 class="gantt__title">{st.title}</h3>
+                  <p class="gantt__who"><strong>Мы.</strong> {st.us}</p>
+                  <p class="gantt__who"><strong>Вы.</strong> {st.you}</p>
+                </div>
+              </div>
+              <div class="gantt__track">
+                <svg class="gantt__svg" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+                  <rect class="gantt__bar" x={b.x} y="0" width={b.w} height="10" data-timing={JSON.stringify(timing)} />
+                </svg>
+                {scenarios.map((s) => (
+                  <p class="gantt__dur" data-scn={s.id}>{s.timing[st.id][2]}</p>
+                ))}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      {scenarios.map((s) => <p class="process__note" data-scn={s.id}>{s.note}</p>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .process__lead { margin-top: 1rem; }
+  .process__app { margin-top: clamp(2rem, 1.5rem + 2vw, 3rem); }
+  .process__switch { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.5rem; }
+
+  [data-scn] { display: none; }
+  .process:has([value='okna']:checked) [data-scn='okna'],
+  .process:has([value='vannaya']:checked) [data-scn='vannaya'],
+  .process:has([value='kvartira']:checked) [data-scn='kvartira'] {
+    display: revert;
+  }
+  .process:has([value='okna']:checked) .gantt__ticks[data-scn='okna'],
+  .process:has([value='vannaya']:checked) .gantt__ticks[data-scn='vannaya'],
+  .process:has([value='kvartira']:checked) .gantt__ticks[data-scn='kvartira'] {
+    display: flex;
+  }
+  .process:has([value='okna']:checked) { --cols: 3; }
+  .process:has([value='vannaya']:checked), .process:has([value='kvartira']:checked) { --cols: 4; }
+
+  .gantt__head, .gantt__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1.5rem clamp(1.5rem, 1rem + 2vw, 3rem); }
+  .gantt__ticks { justify-content: space-between; font-size: var(--step--1); color: var(--ink-2); padding-bottom: 0.5rem; }
+  .gantt { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+  .gantt__row { padding-block: 1.1rem; border-bottom: 1px solid var(--line); align-items: center; }
+  .gantt__label { display: grid; grid-template-columns: 2.25rem 1fr; gap: 0.75rem; align-items: start; }
+  .gantt__n {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .gantt__title { font-size: var(--step-1); letter-spacing: -0.01em; font-variation-settings: normal; margin-bottom: 0.3rem; }
+  .gantt__who { font-size: 0.9375rem; color: var(--ink-2); }
+  .gantt__who strong { color: var(--ink); font-weight: 600; }
+  .gantt__track { display: grid; gap: 0.35rem; }
+  .gantt__svg {
+    width: 100%;
+    height: 22px;
+    background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px calc(100% / var(--cols, 4)));
+    border-right: 1px solid var(--line);
+  }
+  .gantt__bar { fill: var(--signal); stroke: var(--on-signal); stroke-width: 0.15; vector-effect: non-scaling-stroke; }
+  .gantt__dur { font-size: 0.9375rem; font-weight: 550; }
+  .process__note { margin-top: 1.25rem; padding: 0.9rem 1rem; border: 1px solid var(--line); background: var(--bg); border-radius: var(--r-s); max-width: 72ch; }
+
+  @media (max-width: 860px) {
+    .gantt__head { display: none; }
+    .gantt__row { grid-template-columns: 1fr; gap: 0.75rem; }
+    .gantt__track { padding-left: 3rem; }
+  }
+</style>
+
+<script>
+  import { animate } from 'animejs';
+  import { inView } from 'motion';
+  import { prefersReducedMotion } from '../../lib/motion';
+
+  const app = document.querySelector<HTMLElement>('[data-process]');
+  if (app) {
+    const bars = [...app.querySelectorAll<SVGRectElement>('.gantt__bar')];
+    const timing = bars.map((b) => JSON.parse(b.dataset.timing ?? '{}') as Record<string, { x: number; w: number }>);
+
+    app.addEventListener('change', (e) => {
+      const id = (e.target as HTMLInputElement).value;
+      bars.forEach((b, i) => {
+        const t = timing[i]?.[id];
+        if (!t) return;
+        if (prefersReducedMotion()) {
+          b.setAttribute('x', String(t.x));
+          b.setAttribute('width', String(t.w));
+        } else {
+          animate(b, { x: t.x, width: t.w, duration: 650, delay: i * 45, ease: 'inOut(3)' });
+        }
+      });
+    });
+
+    // Bars grow from the left the first time the schedule is seen: the order of steps is the point.
+    if (!prefersReducedMotion()) {
+      bars.forEach((b) => b.setAttribute('width', '0'));
+      const stop = inView(app, () => {
+        stop();
+        const id = app.querySelector<HTMLInputElement>('input[name="scenario"]:checked')?.value ?? '';
+        bars.forEach((b, i) => animate(b, { width: timing[i]?.[id]?.w ?? 0, duration: 700, delay: i * 110, ease: 'out(3)' }));
+      }, { amount: 0.3 });
+    }
+  }
+</script>

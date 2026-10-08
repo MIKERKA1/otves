@@ -1,0 +1,412 @@
+/* Local fallback scaled to Geologica's width (measured: +7% regular, +4.7% bold vs Arial),
+   so the swap to the web font does not re-wrap the hero headline and shift the page. */
+@font-face {
+  font-family: 'Geologica Fallback';
+  src: local('Arial'), local('ArialMT'), local('Roboto'), local('Helvetica');
+  font-weight: 100 549;
+  size-adjust: 107%;
+}
+@font-face {
+  font-family: 'Geologica Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'), local('Helvetica Bold');
+  font-weight: 550 900;
+  size-adjust: 104.7%;
+}
+
+/* ---------- Tokens ---------- */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#eef0ec, #15181b);
+  --surface: light-dark(#f9faf7, #1d2226);
+  --sunken: light-dark(#e3e6e1, #23292e);
+  --ink: light-dark(#1d2125, #e9ece7);
+  --ink-2: light-dark(#4b535a, #a3aba5);
+  --line: light-dark(#c7ccc6, #343b40);
+  --line-strong: light-dark(#7a827b, #6b747a);
+  --signal: light-dark(#f0c23b, #f2c744);
+  --signal-soft: light-dark(#f7e3a3, #4a3f1c);
+  --on-signal: #1d2125;
+  --ok: light-dark(#2f6b4f, #5db48a);
+  --error: light-dark(#b42318, #f97066);
+  --focus: light-dark(#1d2125, #f2c744);
+  --inverse: light-dark(#1d2125, #262d32);
+  --on-inverse: #e9ece7;
+  --on-inverse-2: #a9b0aa;
+  --scrim: light-dark(rgb(29 33 37 / 0.55), rgb(0 0 0 / 0.65));
+
+  --font: 'Geologica Variable', 'Geologica Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.25rem;
+  --step-2: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem);
+  --step-3: clamp(1.625rem, 1.3rem + 1.4vw, 2.375rem);
+  --step-4: clamp(2rem, 1.45rem + 2.5vw, 3.5rem);
+  --step-5: clamp(2.5rem, 1.6rem + 4vw, 4.75rem);
+
+  --r-s: 4px;
+  --r-m: 10px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --container: 1320px;
+  --section: clamp(3.5rem, 2.5rem + 4vw, 6.5rem);
+  --header-h: 64px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Layers: header < mobile action bar < cookie banner < dialogs (top layer). */
+  --z-header: 20;
+  --z-bar: 30;
+  --z-banner: 40;
+}
+
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
+/* ---------- Reset ---------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+  interpolate-size: allow-keywords;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--step-0);
+  font-weight: 380;
+  line-height: 1.55;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: color-mix(in oklab, var(--signal) 35%, transparent);
+}
+
+img, svg, video { display: block; max-width: 100%; }
+img { height: auto; }
+/* Inline styles are blocked by the CSP, so the crop edge comes from an attribute. */
+img[data-focus='left'] { object-position: left center; }
+img[data-focus='right'] { object-position: right center; }
+button, input, select, textarea { font: inherit; color: inherit; }
+p, h1, h2, h3, h4, ul, ol, figure, blockquote, dl, dd { margin: 0; }
+ul[class], ol[class] { list-style: none; padding: 0; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; }
+table { border-collapse: collapse; }
+[hidden] { display: none !important; }
+
+/* ---------- Type ---------- */
+
+h1, h2, h3, h4 {
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  font-variation-settings: 'SHRP' 60;
+  /* Russian has long words («конфиденциальности»): hyphenate, and never push the page sideways. */
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+p, li, dd { text-wrap: pretty; }
+
+.display { font-size: var(--step-5); font-weight: 700; line-height: 1; letter-spacing: -0.035em; font-variation-settings: 'SHRP' 100; }
+.h2 { font-size: var(--step-4); }
+.h3 { font-size: var(--step-2); line-height: 1.2; }
+.lead { font-size: var(--step-1); line-height: 1.5; color: var(--ink-2); max-width: 46ch; }
+.muted { color: var(--ink-2); }
+.small { font-size: var(--step--1); line-height: 1.5; }
+.num { font-variant-numeric: tabular-nums; }
+
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.22em; }
+a:hover { text-decoration-thickness: 2px; }
+
+/* ---------- Layout ---------- */
+
+.container { width: min(100% - 2 * var(--gutter), var(--container)); margin-inline: auto; }
+.section { padding-block: var(--section); }
+.section--surface { background: var(--surface); }
+.stack > * + * { margin-top: var(--stack, 1rem); }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px; top: -100px;
+  z-index: 100;
+  padding: 12px 16px;
+  background: var(--signal);
+  color: var(--on-signal);
+  border-radius: var(--r-s);
+  font-weight: 600;
+}
+.skip-link:focus { top: 12px; }
+
+/* ---------- Focus ---------- */
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  --btn-bg: transparent;
+  --btn-ink: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  min-height: 48px;
+  padding: 0 1.35rem;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-s);
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.18s, border-color 0.18s, color 0.18s, transform 0.12s;
+  touch-action: manipulation;
+}
+.btn:hover { text-decoration: none; }
+.btn:active { transform: translateY(1px); }
+.btn[disabled], .btn[aria-disabled='true'] { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.btn--primary { --btn-bg: var(--signal); --btn-ink: var(--on-signal); }
+.btn--primary:hover { --btn-bg: color-mix(in oklab, var(--signal), #000 9%); }
+.btn--ghost { border-color: var(--ink); }
+.btn--ghost:hover { --btn-bg: color-mix(in oklab, var(--ink) 7%, transparent); }
+.btn--dark { --btn-bg: var(--ink); --btn-ink: var(--bg); }
+.btn--dark:hover { --btn-bg: color-mix(in oklab, var(--ink), var(--bg) 18%); }
+.btn--small { min-height: 40px; padding: 0 0.9rem; font-size: 0.9375rem; }
+.btn--block { width: 100%; }
+/* One line on desktop; on the narrowest phones a long label may wrap instead of widening the page. */
+@media (max-width: 420px) {
+  .btn { white-space: normal; text-align: center; padding-block: 0.6rem; }
+}
+
+.icon { width: 1.25em; height: 1.25em; flex: none; }
+
+.link-btn {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  cursor: pointer;
+}
+.link-btn:hover { text-decoration-thickness: 2px; }
+
+/* ---------- Form controls ---------- */
+
+.field { display: grid; gap: 0.4rem; }
+.field__label { font-weight: 550; }
+.field__hint { font-size: var(--step--1); color: var(--ink-2); }
+.field__error { font-size: var(--step--1); color: var(--error); font-weight: 500; }
+.field__error:empty { display: none; }
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-s);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+  transition: border-color 0.15s;
+}
+.input:hover { border-color: var(--ink-2); }
+.input:focus-visible { outline-offset: 1px; border-color: var(--ink); }
+.input[aria-invalid='true'] { border-color: var(--error); }
+textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
+.input::placeholder { color: color-mix(in oklab, var(--ink-2) 85%, transparent); }
+
+/* Choice chips: native radios and checkboxes with a visible label. */
+.chip {
+  position: relative;
+  display: inline-flex;
+}
+.chip input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.chip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 44px;
+  padding: 0.5rem 0.95rem;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-s);
+  background: var(--surface);
+  font-weight: 500;
+  line-height: 1.2;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.chip:hover span { border-color: var(--ink); }
+.chip input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.chip input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.check {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  cursor: pointer;
+}
+.check input {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 3px;
+  background: var(--surface);
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+}
+.check input::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  background: var(--bg);
+  transform: scale(0);
+  transition: transform 0.12s var(--ease-out);
+}
+.check input:checked { background: var(--ink); border-color: var(--ink); }
+.check input:checked::before { transform: scale(1); }
+.check input[type='radio'] { border-radius: 50%; }
+.check input[type='radio']::before { clip-path: circle(50%); width: 10px; height: 10px; }
+.check input[aria-invalid='true'] { border-color: var(--error); }
+
+/* Number stepper used in the calculator. */
+.stepper { display: inline-grid; grid-template-columns: 44px 3.5rem 44px; align-items: stretch; }
+.stepper button {
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+}
+.stepper button:first-child { border-radius: var(--r-s) 0 0 var(--r-s); }
+.stepper button:last-child { border-radius: 0 var(--r-s) var(--r-s) 0; }
+.stepper button:hover { background: var(--sunken); }
+.stepper input {
+  width: 100%;
+  min-height: 44px;
+  border: 1.5px solid var(--line-strong);
+  border-inline: 0;
+  background: var(--surface);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.stepper input::-webkit-inner-spin-button, .stepper input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+
+/* ---------- Disclosure (FAQ and inline details) ---------- */
+
+details > summary { cursor: pointer; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 0.3s var(--ease-out), content-visibility 0.3s allow-discrete;
+}
+details[open]::details-content { block-size: auto; }
+
+/* ---------- Dialog base ---------- */
+
+dialog {
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  background: var(--surface);
+  max-width: min(100vw - 24px, 760px);
+  max-height: min(100dvh - 24px, 900px);
+  border-radius: var(--r-m);
+  overscroll-behavior: contain;
+}
+dialog::backdrop { background: var(--scrim); }
+
+/* Daylight photos glare on a dark page: tone them down a little. */
+:root[data-theme='dark'] main img { filter: brightness(0.88); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) main img { filter: brightness(0.88); }
+}
+
+/* ---------- Notes ---------- */
+
+.demo-note {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-size: var(--step--1);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.demo-note .icon { margin-top: 0.1em; }
+
+.urgent {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--signal), var(--ink) 25%);
+  background: var(--signal-soft);
+  border-radius: var(--r-s);
+  color: var(--ink);
+}
+
+/* ---------- Page transitions (native, cross-document) ---------- */
+
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.22s; }
+/* Theme switch: no crossfade, the new theme is revealed by a circle from the toggle (Header.astro). */
+.theme-vt::view-transition-old(root), .theme-vt::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  @view-transition { navigation: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+@media (forced-colors: active) {
+  .btn, .chip span, .input { border: 1px solid CanvasText; }
+  .chip input:checked + span { outline: 2px solid Highlight; }
+}
